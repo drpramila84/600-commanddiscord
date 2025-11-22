@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WITHER AI - Discord Bot Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .status {
+            font-size: 1.5em;
+            margin: 30px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #00ff00;
+            color: #000;
+            border-radius: 25px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .features {
+            margin: 30px 0;
+            text-align: left;
+            display: inline-block;
+        }
+        .features li {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 20px 10px;
+            background: #5865F2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: #4752C4;
+        }
+        .info {
+            margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 WITHER AI</h1>
+        <div class="status">
+            <div class="status-badge">✓ ONLINE</div>
+        </div>
+        <p style="font-size: 1.3em; margin: 20px 0;">Discord Bot Dashboard</p>
+        
+        <div class="features">
+            <ul style="list-style: none;">
+                <li>✅ <strong>91 Commands</strong> - Admin, Fun, Economy & More</li>
+                <li>✅ <strong>AutoMod</strong> - Advanced auto-moderation</li>
+                <li>✅ <strong>Giveaways</strong> - Easy giveaway management</li>
+                <li>✅ <strong>Economy</strong> - Coins, daily rewards & gamble</li>
+                <li>✅ <strong>Leveling</strong> - XP system & leaderboards</li>
+                <li>✅ <strong>Tickets</strong> - Support ticket system</li>
+            </ul>
+        </div>
+
+        <a href="/api/login" class="btn" target="_blank">🔐 Login with Discord</a>
+        <a href="/selector" class="btn">📊 View Dashboard</a>
+
+        <div class="info">
+            <p>Bot is running and connected to Discord!</p>
+            <p>Click "Login with Discord" to manage your servers</p>
+        </div>
+    </div>
+</body>
+</html>
