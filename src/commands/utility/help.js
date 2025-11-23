@@ -161,7 +161,7 @@ async function getHelpMenu({ client, guild }) {
 > <:circle:1238429329231314974> Prefix: \`/\`
 > <:circle:1238429329231314974> Discord.js Version: \`v14.15.2\`
 > <:circle:1238429329231314974> Running on \`Node v20.13.1\`
-> <:circle:1238429329231314974> Made by \`friday.su\``);
+> <:circle:1238429329231314974> Made by \`LORD_RAJBHAI\``);
 
   return {
     embeds: [embed],
