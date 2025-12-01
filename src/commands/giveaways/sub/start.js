@@ -32,9 +32,9 @@ module.exports = async (member, giveawayChannel, duration, prize, winners, host,
       messages: {
         giveaway: "<a:Giveaways:1238768947604492338> **GIVEAWAY** <a:Giveaways:1238768947604492338>",
         giveawayEnded: "<a:Giveaways:1238768947604492338> **GIVEAWAY ENDED** <a:Giveaways:1238768947604492338>",
-        inviteToParticipate: "React with <:present:1238429986176892938> to enter",
+        inviteToParticipate: "<a:32877animatedarrowbluelite:1445086424893227012>React with <:present:1238429986176892938> to participate!",
         dropMessage: "Be the first to react with <:present:1238429986176892938> to win!",
-        hostedBy: `\nHosted by: ${host.username}`,
+        hostedBy: `\n<:chad:1314126882018558053> **Winners:** ${winners}\nHosted by: ${host.username}`,
       },
     };
 
