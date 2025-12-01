@@ -1,6 +1,6 @@
 module.exports = {
-  OWNER_IDS: ["1203605618745933880"], // Bot owner ID's
-  SUPPORT_SERVER: "https://discord.gg/btQJeGKKHJ", // Your bot support server
+  OWNER_IDS: ["1306909424253800481"], // Bot owner ID's
+  SUPPORT_SERVER: "https://discord.gg/abEqu8ZUgh", // Your bot support server
   PREFIX_COMMANDS: {
     ENABLED: true, // Enable/Disable prefix commands
     DEFAULT_PREFIX: "e!", // Default prefix for the bot
@@ -51,7 +51,7 @@ module.exports = {
   },
 
   MUSIC: {
-    ENABLED: false,
+    ENABLED: true,
     IDLE_TIME: 60, // Time in seconds before the bot disconnects from an idle voice channel
     MAX_SEARCH_RESULTS: 5,
     DEFAULT_SOURCE: "SC", // YT = Youtube, YTM = Youtube Music, SC = SoundCloud
