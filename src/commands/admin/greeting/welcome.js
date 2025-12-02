@@ -101,7 +101,7 @@ module.exports = {
         options: [
           {
             name: "content",
-            description: "description content",
+            description: "description content E..g {member:mention} is username {member:name} is show the name",
             type: ApplicationCommandOptionType.String,
             required: true,
           },
