@@ -37,8 +37,8 @@ module.exports = {
 
   DASHBOARD: {
     enabled: true, // enable or disable dashboard
-    baseURL: "https://discord.com/oauth2/authorize?client_id=1431655317829324972&permissions=8&integration_type=0&scope=bot+applications.commands", // base url
-    failureURL: "https://discord.com/oauth2/authorize?client_id=1431655317829324972&permissions=8&integration_type=0&scope=bot+applications.commands", // failure redirect url
+    baseURL: "https://six00-commanddiscord-2.onrender.com", // base url
+    failureURL: "https://six00-commanddiscord-2.onrender.com", // failure redirect url
     port: "5000", // port to run the bot on
   },
 
