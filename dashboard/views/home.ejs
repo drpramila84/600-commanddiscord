@@ -18,6 +18,7 @@
             align-items: center;
             justify-content: center;
             color: white;
+            padding: 20px;
         }
         .container {
             text-align: center;
@@ -26,16 +27,22 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+            max-width: 700px;
+            width: 100%;
         }
         h1 {
             font-size: 3em;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
+        h2 {
+            font-size: 1.8em;
+            margin: 30px 0 15px 0;
+            color: #5865F2;
+        }
         .status {
             font-size: 1.5em;
-            margin: 30px 0;
+            margin: 20px 0;
         }
         .status-badge {
             display: inline-block;
@@ -50,6 +57,28 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
         }
+        .divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+            margin: 30px 0;
+        }
+        .about-section {
+            background: rgba(88, 101, 242, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .about-section p {
+            margin: 10px 0;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        .about-section .highlight {
+            color: #5865F2;
+            font-weight: bold;
+        }
         .features {
             margin: 30px 0;
             text-align: left;
@@ -61,13 +90,13 @@
         }
         .btn {
             display: inline-block;
-            padding: 15px 40px;
-            margin: 20px 10px;
+            padding: 15px 30px;
+            margin: 10px 5px;
             background: #5865F2;
             color: white;
             text-decoration: none;
             border-radius: 8px;
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -77,8 +106,38 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
             background: #4752C4;
         }
+        .btn-secondary {
+            background: #2d3136;
+        }
+        .btn-secondary:hover {
+            background: #40444b;
+        }
+        .buttons-container {
+            margin: 25px 0;
+        }
         .info {
             margin-top: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-box .number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #5865F2;
+        }
+        .stat-box .label {
             font-size: 0.9em;
             opacity: 0.8;
         }
@@ -86,13 +145,49 @@
 </head>
 <body>
     <div class="container">
-        <h1>🤖 WITHER BOT</h1>
+        <h1>WITHER BOT</h1>
         <div class="status">
-            <div class="status-badge">✓ ONLINE</div>
+            <div class="status-badge">ONLINE</div>
         </div>
         <p style="font-size: 1.3em; margin: 20px 0;">Discord Bot Dashboard</p>
-        
+
+        <hr class="divider">
+
+        <h2>About</h2>
+        <div class="about-section">
+            <p><span class="highlight">WITHER BOT</span> is a powerful, multipurpose Discord bot designed to enhance your server experience.</p>
+            <p>Built with <span class="highlight">Discord.js v14</span>, it offers a wide range of features including moderation, economy, leveling, music, giveaways, and much more!</p>
+            <p>With an easy-to-use /help, you can customize and manage all bot settings for your server without any issue.</p>
+        </div>
+
+        <hr class="divider">
+
+        <h2>Features</h2>
         <div class="features">
+            <ul style="list-style: none;">
+                <li>Commands - Admin, Fun, Economy & More</li>
+                <li>AutoMod - Advanced auto-moderation</li>
+                <li>Giveaways - Easy giveaway management</li>
+                <li>Economy - Coins, daily rewards & gamble</li>
+                <li>Leveling - XP system & leaderboards</li>
+                <li>Tickets - Support ticket system</li>
+                <li>Music - Play music in voice channels</li>
+                <li>Welcome/Leave - Custom greeting messages</li>
+            </ul>
+        </div>
+
+        <hr class="divider">
+
+        <div class="buttons-container">
+            <a href="/api/login" class="btn">Login with Discord</a>
+
+        <div class="info">
+            <p>Bot is running and connected to Discord!</p>
+            <p>Click "Manage Server" to configure your servers</p>
+        </div>
+    </div>
+</body>
+</html>        <div class="features">
             <ul style="list-style: none;">
                 <li>✅ <strong> Commands</strong> - Admin, Fun, Economy & More</li>
                 <li>✅ <strong>AutoMod</strong> - Advanced auto-moderation</li>
