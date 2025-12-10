@@ -90,4 +90,4 @@ async function chatWithAI(query, username) {
 
     return "An error occurred while processing your request. Please try again later.";
   }
-}
+          }
