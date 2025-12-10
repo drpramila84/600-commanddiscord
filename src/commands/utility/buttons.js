@@ -258,74 +258,86 @@ module.exports = {
   },
 
   async interactionRun(interaction) {
-    await interaction.deferReply({ ephemeral: true });
     const subGroup = interaction.options.getSubcommandGroup(false);
     const sub = interaction.options.getSubcommand();
 
     if (subGroup === "add") {
       const messageLink = interaction.options.getString("message");
-      const { message, error } = await fetchMessageFromLink(interaction.guild, messageLink);
+      const { message, channel, error } = await fetchMessageFromLink(interaction.guild, messageLink);
       
-      if (error) return interaction.editReply(error);
-      if (!message.editable) return interaction.editReply("I cannot edit this message!");
+      if (error) return interaction.followUp(error);
 
       let response;
       switch (sub) {
         case "button":
-          response = await addRoleButton(interaction, message);
+          response = await addRoleButton(interaction, message, channel);
           break;
         case "link":
-          response = await addLinkButton(interaction, message);
+          response = await addLinkButton(interaction, message, channel);
           break;
         case "role_select":
-          response = await addRoleSelect(interaction, message);
+          response = await addRoleSelect(interaction, message, channel);
           break;
         case "user_select":
-          response = await addUserSelect(interaction, message);
+          response = await addUserSelect(interaction, message, channel);
           break;
         case "channel_select":
-          response = await addChannelSelect(interaction, message);
+          response = await addChannelSelect(interaction, message, channel);
           break;
         case "string_select":
-          response = await addStringSelect(interaction, message);
+          response = await addStringSelect(interaction, message, channel);
           break;
         default:
           response = "Unknown component type!";
       }
 
-      return interaction.editReply(response);
+      return interaction.followUp(response);
     }
 
     if (sub === "remove") {
       const messageLink = interaction.options.getString("message");
-      const { message, error } = await fetchMessageFromLink(interaction.guild, messageLink);
+      const { message, channel, error } = await fetchMessageFromLink(interaction.guild, messageLink);
       
-      if (error) return interaction.editReply(error);
-      if (!message.editable) return interaction.editReply("I cannot edit this message!");
+      if (error) return interaction.followUp(error);
 
-      await message.edit({ components: [] });
-      return interaction.editReply("All components removed from the message!");
+      if (message.editable) {
+        await message.edit({ components: [] });
+        return interaction.followUp("All components removed from the message!");
+      } else {
+        await channel.send({
+          content: "✅ Components cleared from the referenced message.",
+          reply: { messageReference: message.id, failIfNotExists: false }
+        });
+        return interaction.followUp("Cleared - message cannot be edited, but notification sent!");
+      }
     }
 
     if (sub === "clear_row") {
       const messageLink = interaction.options.getString("message");
       const rowNum = interaction.options.getInteger("row");
-      const { message, error } = await fetchMessageFromLink(interaction.guild, messageLink);
+      const { message, channel, error } = await fetchMessageFromLink(interaction.guild, messageLink);
       
-      if (error) return interaction.editReply(error);
-      if (!message.editable) return interaction.editReply("I cannot edit this message!");
+      if (error) return interaction.followUp(error);
 
-      const components = [...message.components];
-      if (rowNum > components.length) {
-        return interaction.editReply(`This message only has ${components.length} rows!`);
+      if (message.editable) {
+        const components = [...message.components];
+        if (rowNum > components.length) {
+          return interaction.followUp(`This message only has ${components.length} rows!`);
+        }
+
+        components.splice(rowNum - 1, 1);
+        await message.edit({ components });
+        return interaction.followUp(`Row ${rowNum} cleared!`);
+      } else {
+        await channel.send({
+          content: `✅ Row ${rowNum} would be cleared.`,
+          reply: { messageReference: message.id, failIfNotExists: false }
+        });
+        return interaction.followUp("Cleared - message cannot be edited, but notification sent!");
       }
-
-      components.splice(rowNum - 1, 1);
-      await message.edit({ components });
-      return interaction.editReply(`Row ${rowNum} cleared!`);
     }
 
-    return interaction.editReply("Unknown command!");
+    return interaction.followUp("Unknown command!");
   },
 };
 
@@ -350,13 +362,13 @@ async function fetchMessageFromLink(guild, messageLink) {
 
   try {
     const message = await channel.messages.fetch(messageId);
-    return { message };
+    return { message, channel };
   } catch {
     return { error: "Could not find the message! Make sure the link is correct." };
   }
 }
 
-async function addRoleButton(interaction, message) {
+async function addRoleButton(interaction, message, channel) {
   try {
     const label = interaction.options.getString("label");
     const role = interaction.options.getRole("role");
@@ -370,35 +382,45 @@ async function addRoleButton(interaction, message) {
 
     if (emoji) button.setEmoji(emoji);
 
-    const components = [...message.components];
-    let addedToExisting = false;
+    if (message.editable) {
+      const components = [...message.components];
+      let addedToExisting = false;
 
-    for (let i = 0; i < components.length; i++) {
-      const row = ActionRowBuilder.from(components[i]);
-      if (row.components.length < 5 && row.components[0]?.data?.type === 2) {
-        row.addComponents(button);
-        components[i] = row;
-        addedToExisting = true;
-        break;
+      for (let i = 0; i < components.length; i++) {
+        const row = ActionRowBuilder.from(components[i]);
+        if (row.components.length < 5 && row.components[0]?.data?.type === 2) {
+          row.addComponents(button);
+          components[i] = row;
+          addedToExisting = true;
+          break;
+        }
       }
-    }
 
-    if (!addedToExisting) {
-      if (components.length >= 5) {
-        return "Cannot add more components! Maximum 5 rows reached.";
+      if (!addedToExisting) {
+        if (components.length >= 5) {
+          return "Cannot add more components! Maximum 5 rows reached.";
+        }
+        components.push(new ActionRowBuilder().addComponents(button));
       }
-      components.push(new ActionRowBuilder().addComponents(button));
-    }
 
-    await message.edit({ components });
-    return `Role button for ${role} added successfully!`;
+      await message.edit({ components });
+      return `Role button for ${role} added successfully!`;
+    } else {
+      const row = new ActionRowBuilder().addComponents(button);
+      await channel.send({
+        content: `Click below to get/remove the ${role} role:`,
+        components: [row],
+        reply: { messageReference: message.id, failIfNotExists: false }
+      });
+      return `Role button for ${role} created as a new message!`;
+    }
   } catch (error) {
     console.error("Add Button Error:", error);
     return `Failed to add button: ${error.message}`;
   }
 }
 
-async function addLinkButton(interaction, message) {
+async function addLinkButton(interaction, message, channel) {
   try {
     const label = interaction.options.getString("label");
     const url = interaction.options.getString("url");
@@ -415,35 +437,44 @@ async function addLinkButton(interaction, message) {
 
     if (emoji) button.setEmoji(emoji);
 
-    const components = [...message.components];
-    let addedToExisting = false;
+    if (message.editable) {
+      const components = [...message.components];
+      let addedToExisting = false;
 
-    for (let i = 0; i < components.length; i++) {
-      const row = ActionRowBuilder.from(components[i]);
-      if (row.components.length < 5 && row.components[0]?.data?.type === 2) {
-        row.addComponents(button);
-        components[i] = row;
-        addedToExisting = true;
-        break;
+      for (let i = 0; i < components.length; i++) {
+        const row = ActionRowBuilder.from(components[i]);
+        if (row.components.length < 5 && row.components[0]?.data?.type === 2) {
+          row.addComponents(button);
+          components[i] = row;
+          addedToExisting = true;
+          break;
+        }
       }
-    }
 
-    if (!addedToExisting) {
-      if (components.length >= 5) {
-        return "Cannot add more components! Maximum 5 rows reached.";
+      if (!addedToExisting) {
+        if (components.length >= 5) {
+          return "Cannot add more components! Maximum 5 rows reached.";
+        }
+        components.push(new ActionRowBuilder().addComponents(button));
       }
-      components.push(new ActionRowBuilder().addComponents(button));
-    }
 
-    await message.edit({ components });
-    return `Link button added successfully!`;
+      await message.edit({ components });
+      return `Link button added successfully!`;
+    } else {
+      const row = new ActionRowBuilder().addComponents(button);
+      await channel.send({
+        components: [row],
+        reply: { messageReference: message.id, failIfNotExists: false }
+      });
+      return `Link button created as a new message!`;
+    }
   } catch (error) {
     console.error("Add Link Button Error:", error);
     return `Failed to add link button: ${error.message}`;
   }
 }
 
-async function addRoleSelect(interaction, message) {
+async function addRoleSelect(interaction, message, channel) {
   try {
     const placeholder = interaction.options.getString("placeholder") || "Select a role";
     const maxValues = interaction.options.getInteger("max_values") || 1;
@@ -453,21 +484,31 @@ async function addRoleSelect(interaction, message) {
       .setPlaceholder(placeholder)
       .setMaxValues(maxValues);
 
-    const components = [...message.components];
-    if (components.length >= 5) {
-      return "Cannot add more components! Maximum 5 rows reached.";
-    }
+    const row = new ActionRowBuilder().addComponents(select);
 
-    components.push(new ActionRowBuilder().addComponents(select));
-    await message.edit({ components });
-    return "Role select menu added successfully!";
+    if (message.editable) {
+      const components = [...message.components];
+      if (components.length >= 5) {
+        return "Cannot add more components! Maximum 5 rows reached.";
+      }
+      components.push(row);
+      await message.edit({ components });
+      return "Role select menu added successfully!";
+    } else {
+      await channel.send({
+        content: "Select a role below:",
+        components: [row],
+        reply: { messageReference: message.id, failIfNotExists: false }
+      });
+      return "Role select menu created as a new message!";
+    }
   } catch (error) {
     console.error("Add Role Select Error:", error);
     return `Failed to add role select: ${error.message}`;
   }
 }
 
-async function addUserSelect(interaction, message) {
+async function addUserSelect(interaction, message, channel) {
   try {
     const placeholder = interaction.options.getString("placeholder") || "Select a user";
     const maxValues = interaction.options.getInteger("max_values") || 1;
@@ -477,21 +518,31 @@ async function addUserSelect(interaction, message) {
       .setPlaceholder(placeholder)
       .setMaxValues(maxValues);
 
-    const components = [...message.components];
-    if (components.length >= 5) {
-      return "Cannot add more components! Maximum 5 rows reached.";
-    }
+    const row = new ActionRowBuilder().addComponents(select);
 
-    components.push(new ActionRowBuilder().addComponents(select));
-    await message.edit({ components });
-    return "User select menu added successfully!";
+    if (message.editable) {
+      const components = [...message.components];
+      if (components.length >= 5) {
+        return "Cannot add more components! Maximum 5 rows reached.";
+      }
+      components.push(row);
+      await message.edit({ components });
+      return "User select menu added successfully!";
+    } else {
+      await channel.send({
+        content: "Select a user below:",
+        components: [row],
+        reply: { messageReference: message.id, failIfNotExists: false }
+      });
+      return "User select menu created as a new message!";
+    }
   } catch (error) {
     console.error("Add User Select Error:", error);
     return `Failed to add user select: ${error.message}`;
   }
 }
 
-async function addChannelSelect(interaction, message) {
+async function addChannelSelect(interaction, message, channel) {
   try {
     const placeholder = interaction.options.getString("placeholder") || "Select a channel";
     const maxValues = interaction.options.getInteger("max_values") || 1;
@@ -501,21 +552,31 @@ async function addChannelSelect(interaction, message) {
       .setPlaceholder(placeholder)
       .setMaxValues(maxValues);
 
-    const components = [...message.components];
-    if (components.length >= 5) {
-      return "Cannot add more components! Maximum 5 rows reached.";
-    }
+    const row = new ActionRowBuilder().addComponents(select);
 
-    components.push(new ActionRowBuilder().addComponents(select));
-    await message.edit({ components });
-    return "Channel select menu added successfully!";
+    if (message.editable) {
+      const components = [...message.components];
+      if (components.length >= 5) {
+        return "Cannot add more components! Maximum 5 rows reached.";
+      }
+      components.push(row);
+      await message.edit({ components });
+      return "Channel select menu added successfully!";
+    } else {
+      await channel.send({
+        content: "Select a channel below:",
+        components: [row],
+        reply: { messageReference: message.id, failIfNotExists: false }
+      });
+      return "Channel select menu created as a new message!";
+    }
   } catch (error) {
     console.error("Add Channel Select Error:", error);
     return `Failed to add channel select: ${error.message}`;
   }
 }
 
-async function addStringSelect(interaction, message) {
+async function addStringSelect(interaction, message, channel) {
   try {
     const placeholder = interaction.options.getString("placeholder");
     const optionsStr = interaction.options.getString("options");
@@ -539,16 +600,25 @@ async function addStringSelect(interaction, message) {
       .setPlaceholder(placeholder)
       .addOptions(options);
 
-    const components = [...message.components];
-    if (components.length >= 5) {
-      return "Cannot add more components! Maximum 5 rows reached.";
-    }
+    const row = new ActionRowBuilder().addComponents(select);
 
-    components.push(new ActionRowBuilder().addComponents(select));
-    await message.edit({ components });
-    return "String select menu added successfully!";
+    if (message.editable) {
+      const components = [...message.components];
+      if (components.length >= 5) {
+        return "Cannot add more components! Maximum 5 rows reached.";
+      }
+      components.push(row);
+      await message.edit({ components });
+      return "String select menu added successfully!";
+    } else {
+      await channel.send({
+        components: [row],
+        reply: { messageReference: message.id, failIfNotExists: false }
+      });
+      return "String select menu created as a new message!";
+    }
   } catch (error) {
     console.error("Add String Select Error:", error);
     return `Failed to add string select: ${error.message}`;
   }
-                }
+              }
