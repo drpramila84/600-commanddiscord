@@ -230,7 +230,6 @@ module.exports = {
   },
 
   async interactionRun(interaction) {
-    await interaction.deferReply({ ephemeral: true });
     const sub = interaction.options.getSubcommand();
 
     if (sub === "edit") {
@@ -251,13 +250,13 @@ module.exports = {
         footer,
       });
 
-      return interaction.editReply(response);
+      return interaction.followUp(response);
     }
 
     const channel = interaction.options.getChannel("channel");
 
     if (!channel || !channel.isTextBased()) {
-      return interaction.editReply("Please provide a valid text channel!");
+      return interaction.followUp("Please provide a valid text channel!");
     }
 
     if (sub === "send") {
@@ -283,7 +282,7 @@ module.exports = {
         webhookAvatar,
       });
 
-      return interaction.editReply(response);
+      return interaction.followUp(response);
     }
 
     if (sub === "raw") {
@@ -297,7 +296,7 @@ module.exports = {
         webhookAvatar,
       });
 
-      return interaction.editReply(response);
+      return interaction.followUp(response);
     }
 
     if (sub === "separator") {
@@ -313,7 +312,7 @@ module.exports = {
         webhookAvatar,
       });
 
-      return interaction.editReply(response);
+      return interaction.followUp(response);
     }
   },
 };
@@ -333,7 +332,7 @@ async function sendWebhookEmbed(channel, options) {
     const embed = new EmbedBuilder()
       .setTitle(options.title)
       .setDescription(options.description)
-      .setColor(options.color);
+      .setColor(options.color || "#2F3136");
 
     if (options.image) embed.setImage(options.image);
     if (options.thumbnail) embed.setThumbnail(options.thumbnail);
@@ -341,15 +340,15 @@ async function sendWebhookEmbed(channel, options) {
     if (options.author) embed.setAuthor({ name: options.author });
 
     await webhook.send({
-      username: options.webhookName,
+      username: options.webhookName || "Discohook",
       avatarURL: options.webhookAvatar,
       embeds: [embed],
     });
 
-    return `Webhook message sent successfully to ${channel}!`;
+    return `✅ Webhook message sent successfully to ${channel}!`;
   } catch (error) {
     console.error("Discohook Error:", error);
-    return `Failed to send webhook message: ${error.message}`;
+    return `❌ Failed to send webhook message: ${error.message}`;
   }
 }
 
@@ -366,15 +365,15 @@ async function sendWebhookRaw(channel, options) {
     }
 
     await webhook.send({
-      username: options.webhookName,
+      username: options.webhookName || "Discohook",
       avatarURL: options.webhookAvatar,
       content: options.message,
     });
 
-    return `Webhook message sent successfully to ${channel}!`;
+    return `✅ Webhook message sent successfully to ${channel}!`;
   } catch (error) {
     console.error("Discohook Error:", error);
-    return `Failed to send webhook message: ${error.message}`;
+    return `❌ Failed to send webhook message: ${error.message}`;
   }
 }
 
@@ -403,18 +402,18 @@ async function sendWebhookSeparator(channel, options) {
 
     const embed = new EmbedBuilder()
       .setDescription(separatorLine)
-      .setColor(options.color);
+      .setColor(options.color || "#2F3136");
 
     await webhook.send({
-      username: options.webhookName,
+      username: options.webhookName || "Discohook",
       avatarURL: options.webhookAvatar,
       embeds: [embed],
     });
 
-    return `Separator sent successfully to ${channel}!`;
+    return `✅ Separator sent successfully to ${channel}!`;
   } catch (error) {
     console.error("Discohook Separator Error:", error);
-    return `Failed to send separator: ${error.message}`;
+    return `❌ Failed to send separator: ${error.message}`;
   }
 }
 
@@ -504,4 +503,4 @@ async function editWebhookMessage(guild, messageLink, options) {
     console.error("Discohook Edit Error:", error);
     return `Failed to edit message: ${error.message}`;
   }
-        }
+            }
