@@ -258,6 +258,7 @@ module.exports = {
   },
 
   async interactionRun(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const subGroup = interaction.options.getSubcommandGroup(false);
     const sub = interaction.options.getSubcommand();
 
@@ -265,8 +266,8 @@ module.exports = {
       const messageLink = interaction.options.getString("message");
       const { message, error } = await fetchMessageFromLink(interaction.guild, messageLink);
       
-      if (error) return interaction.followUp(error);
-      if (!message.editable) return interaction.followUp("I cannot edit this message!");
+      if (error) return interaction.editReply(error);
+      if (!message.editable) return interaction.editReply("I cannot edit this message!");
 
       let response;
       switch (sub) {
@@ -292,18 +293,18 @@ module.exports = {
           response = "Unknown component type!";
       }
 
-      return interaction.followUp(response);
+      return interaction.editReply(response);
     }
 
     if (sub === "remove") {
       const messageLink = interaction.options.getString("message");
       const { message, error } = await fetchMessageFromLink(interaction.guild, messageLink);
       
-      if (error) return interaction.followUp(error);
-      if (!message.editable) return interaction.followUp("I cannot edit this message!");
+      if (error) return interaction.editReply(error);
+      if (!message.editable) return interaction.editReply("I cannot edit this message!");
 
       await message.edit({ components: [] });
-      return interaction.followUp("All components removed from the message!");
+      return interaction.editReply("All components removed from the message!");
     }
 
     if (sub === "clear_row") {
@@ -311,20 +312,20 @@ module.exports = {
       const rowNum = interaction.options.getInteger("row");
       const { message, error } = await fetchMessageFromLink(interaction.guild, messageLink);
       
-      if (error) return interaction.followUp(error);
-      if (!message.editable) return interaction.followUp("I cannot edit this message!");
+      if (error) return interaction.editReply(error);
+      if (!message.editable) return interaction.editReply("I cannot edit this message!");
 
       const components = [...message.components];
       if (rowNum > components.length) {
-        return interaction.followUp(`This message only has ${components.length} rows!`);
+        return interaction.editReply(`This message only has ${components.length} rows!`);
       }
 
       components.splice(rowNum - 1, 1);
       await message.edit({ components });
-      return interaction.followUp(`Row ${rowNum} cleared!`);
+      return interaction.editReply(`Row ${rowNum} cleared!`);
     }
 
-    return interaction.followUp("Unknown command!");
+    return interaction.editReply("Unknown command!");
   },
 };
 
@@ -550,4 +551,4 @@ async function addStringSelect(interaction, message) {
     console.error("Add String Select Error:", error);
     return `Failed to add string select: ${error.message}`;
   }
-}
+                }
