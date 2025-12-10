@@ -2,6 +2,15 @@ const { ApplicationCommandOptionType, EmbedBuilder } = require("discord.js");
 const OpenAI = require("openai");
 const { EMBED_COLORS } = require("@root/config");
 
+let openaiClient = null;
+
+function getOpenAIClient() {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openaiClient;
+}
+
 /**
  * @type {import("@structures/Command")}
  */
@@ -35,9 +44,10 @@ module.exports = {
   },
 
   async interactionRun(interaction) {
+    await interaction.deferReply();
     const query = interaction.options.getString("message");
     const response = await chatWithAI(query, interaction.user.username);
-    await interaction.followUp(response);
+    await interaction.editReply(response);
   },
 };
 
@@ -46,7 +56,7 @@ async function chatWithAI(query, username) {
     return "The AI feature is not configured. Please contact the bot owner.";
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = getOpenAIClient();
 
   try {
     const response = await openai.chat.completions.create({
@@ -61,7 +71,8 @@ async function chatWithAI(query, username) {
           content: query,
         },
       ],
-      max_completion_tokens: 1024,
+      max_completion_tokens: 512,
+      temperature: 0.7,
     });
 
     const aiResponse = response.choices[0].message.content;
@@ -88,6 +99,10 @@ async function chatWithAI(query, username) {
       return "The AI feature is not properly configured. Please contact the bot owner.";
     }
 
+    if (error.message?.includes("429")) {
+      return "The AI service is currently busy. Please try again in a moment.";
+    }
+
     return "An error occurred while processing your request. Please try again later.";
   }
-          }
+}
