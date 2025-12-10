@@ -149,30 +149,26 @@ async function play({ member, guild, channel }, query) {
 
   if (tracks.length === 1) {
     const track = tracks[0];
-    if (!player?.playing && !player?.paused && !player?.queue.tracks.length) {
-      embed.setAuthor({ name: "Added Track to queue" });
-    } else {
-      const fields = [];
-      embed
-        .setAuthor({ name: "Added Track to queue" })
-        .setDescription(`[${track.info.title}](${track.info.uri})`)
-        .setFooter({ text: `Requested By: ${member.user.username}` });
+    const fields = [];
+    embed
+      .setAuthor({ name: "Added Track to queue" })
+      .setDescription(`[${track.info.title}](${track.info.uri})`)
+      .setFooter({ text: `Requested By: ${member.user.username}` });
 
+    fields.push({
+      name: "Song Duration",
+      value: "`" + prettyMs(track.info.length, { colonNotation: true }) + "`",
+      inline: true,
+    });
+
+    if (player?.queue?.tracks?.length > 0) {
       fields.push({
-        name: "Song Duration",
-        value: "`" + prettyMs(track.info.length, { colonNotation: true }) + "`",
+        name: "Position in Queue",
+        value: (player.queue.tracks.length + 1).toString(),
         inline: true,
       });
-
-      if (player?.queue?.tracks?.length > 0) {
-        fields.push({
-          name: "Position in Queue",
-          value: (player.queue.tracks.length + 1).toString(),
-          inline: true,
-        });
-      }
-      embed.addFields(fields);
     }
+    embed.addFields(fields);
   } else {
     embed
       .setAuthor({ name: "Added Playlist to queue" })
@@ -213,4 +209,4 @@ async function play({ member, guild, channel }, query) {
   }
 
   return { embeds: [embed] };
-}
+  }
