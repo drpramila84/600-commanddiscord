@@ -230,6 +230,7 @@ module.exports = {
   },
 
   async interactionRun(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const sub = interaction.options.getSubcommand();
 
     if (sub === "edit") {
@@ -250,13 +251,13 @@ module.exports = {
         footer,
       });
 
-      return interaction.followUp(response);
+      return interaction.editReply(response);
     }
 
     const channel = interaction.options.getChannel("channel");
 
     if (!channel || !channel.isTextBased()) {
-      return interaction.followUp("Please provide a valid text channel!");
+      return interaction.editReply("Please provide a valid text channel!");
     }
 
     if (sub === "send") {
@@ -282,7 +283,7 @@ module.exports = {
         webhookAvatar,
       });
 
-      return interaction.followUp(response);
+      return interaction.editReply(response);
     }
 
     if (sub === "raw") {
@@ -296,7 +297,7 @@ module.exports = {
         webhookAvatar,
       });
 
-      return interaction.followUp(response);
+      return interaction.editReply(response);
     }
 
     if (sub === "separator") {
@@ -312,7 +313,7 @@ module.exports = {
         webhookAvatar,
       });
 
-      return interaction.followUp(response);
+      return interaction.editReply(response);
     }
   },
 };
@@ -503,4 +504,4 @@ async function editWebhookMessage(guild, messageLink, options) {
     console.error("Discohook Edit Error:", error);
     return `Failed to edit message: ${error.message}`;
   }
-}
+        }
