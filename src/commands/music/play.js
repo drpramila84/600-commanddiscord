@@ -9,6 +9,24 @@ const search_prefix = {
   SC: "scsearch",
 };
 
+function normalizeTrack(track) {
+  if (!track) return null;
+  if (track.encoded && track.info) {
+    return {
+      track: track.encoded,
+      ...track.info,
+      info: track.info,
+    };
+  }
+  if (track.track && track.info) {
+    return {
+      ...track,
+      ...track.info,
+    };
+  }
+  return track;
+}
+
 /**
  * @type {import("@structures/Command")}
  */
@@ -77,26 +95,33 @@ async function play({ member, guild, channel }, query) {
       const item = await guild.client.musicManager.spotify.load(query);
       switch (item?.type) {
         case SpotifyItemType.Track: {
-          const track = await item.resolveYoutubeTrack();
-          tracks = [track];
-          description = `[${track.info.title}](${track.info.uri})`;
+          const rawTrack = await item.resolveYoutubeTrack();
+          const track = normalizeTrack(rawTrack);
+          tracks = track ? [track] : [];
+          description = track ? `[${track.title || track.info?.title}](${track.uri || track.info?.uri})` : "";
           break;
         }
 
-        case SpotifyItemType.Artist:
-          tracks = await item.resolveYoutubeTracks();
+        case SpotifyItemType.Artist: {
+          const rawTracks = await item.resolveYoutubeTracks();
+          tracks = rawTracks.map(normalizeTrack).filter(Boolean);
           description = `Artist: [**${item.name}**](${query})`;
           break;
+        }
 
-        case SpotifyItemType.Album:
-          tracks = await item.resolveYoutubeTracks();
+        case SpotifyItemType.Album: {
+          const rawTracks = await item.resolveYoutubeTracks();
+          tracks = rawTracks.map(normalizeTrack).filter(Boolean);
           description = `Album: [**${item.name}**](${query})`;
           break;
+        }
 
-        case SpotifyItemType.Playlist:
-          tracks = await item.resolveYoutubeTracks();
+        case SpotifyItemType.Playlist: {
+          const rawTracks = await item.resolveYoutubeTracks();
+          tracks = rawTracks.map(normalizeTrack).filter(Boolean);
           description = `Playlist: [**${item.name}**](${query})`;
           break;
+        }
 
         default:
           return "🚫 An error occurred while searching for the song";
@@ -118,18 +143,21 @@ async function play({ member, guild, channel }, query) {
           return `No results found matching ${query}`;
 
         case "PLAYLIST_LOADED":
-        case "playlist":
-          tracks = res.tracks || res.data?.tracks;
+        case "playlist": {
+          const rawTracks = res.tracks || res.data?.tracks || [];
+          tracks = rawTracks.map(normalizeTrack).filter(Boolean);
           description = res.playlistInfo?.name || res.data?.info?.name || "Playlist";
           break;
+        }
 
         case "TRACK_LOADED":
         case "track":
         case "SEARCH_RESULT":
         case "search": {
           const trackData = res.tracks || res.data?.tracks || (res.data ? [res.data] : []);
-          const [track] = trackData;
-          tracks = [track];
+          const [rawTrack] = trackData;
+          const track = normalizeTrack(rawTrack);
+          tracks = track ? [track] : [];
           break;
         }
 
@@ -149,15 +177,18 @@ async function play({ member, guild, channel }, query) {
 
   if (tracks.length === 1) {
     const track = tracks[0];
+    const trackTitle = track.title || track.info?.title || "Unknown";
+    const trackUri = track.uri || track.info?.uri || "";
+    const trackLength = track.length || track.info?.length || 0;
     const fields = [];
     embed
       .setAuthor({ name: "Added Track to queue" })
-      .setDescription(`[${track.info.title}](${track.info.uri})`)
+      .setDescription(`[${trackTitle}](${trackUri})`)
       .setFooter({ text: `Requested By: ${member.user.username}` });
 
     fields.push({
       name: "Song Duration",
-      value: "`" + prettyMs(track.info.length, { colonNotation: true }) + "`",
+      value: "`" + prettyMs(trackLength, { colonNotation: true }) + "`",
       inline: true,
     });
 
@@ -170,6 +201,7 @@ async function play({ member, guild, channel }, query) {
     }
     embed.addFields(fields);
   } else {
+    const totalDuration = tracks.reduce((acc, t) => acc + (t.length || t.info?.length || 0), 0);
     embed
       .setAuthor({ name: "Added Playlist to queue" })
       .setDescription(description)
@@ -181,13 +213,7 @@ async function play({ member, guild, channel }, query) {
         },
         {
           name: "Playlist duration",
-          value:
-            "`" +
-            prettyMs(
-              tracks.map((t) => t.info.length).reduce((a, b) => a + b, 0),
-              { colonNotation: true }
-            ) +
-            "`",
+          value: "`" + prettyMs(totalDuration, { colonNotation: true }) + "`",
           inline: true,
         }
       )
