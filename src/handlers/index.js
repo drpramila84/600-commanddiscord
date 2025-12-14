@@ -1,4 +1,5 @@
 module.exports = {
+  antinukeHandler: require("./antinuke"),
   automodHandler: require("./automod"),
   commandHandler: require("./command"),
   contextHandler: require("./context"),
