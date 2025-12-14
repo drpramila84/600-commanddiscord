@@ -108,6 +108,25 @@ const Schema = new mongoose.Schema({
     rejected_channel: String,
     staff_roles: [String],
   },
+  antinuke: {
+    enabled: { type: Boolean, default: false },
+    log_channel: String,
+    whitelist: [String],
+    anti_ban: { type: Boolean, default: true },
+    anti_kick: { type: Boolean, default: true },
+    anti_channel_delete: { type: Boolean, default: true },
+    anti_channel_create: { type: Boolean, default: false },
+    anti_role_delete: { type: Boolean, default: true },
+    anti_role_create: { type: Boolean, default: false },
+    anti_webhook_create: { type: Boolean, default: true },
+    anti_bot_add: { type: Boolean, default: true },
+    ban_threshold: { type: Number, default: 3 },
+    kick_threshold: { type: Number, default: 3 },
+    channel_threshold: { type: Number, default: 3 },
+    role_threshold: { type: Number, default: 3 },
+    time_window: { type: Number, default: 10 },
+    punishment: { type: String, enum: ["BAN", "KICK", "REMOVE_ROLES"], default: "REMOVE_ROLES" },
+  },
 });
 
 const Model = mongoose.model("guild", Schema);
