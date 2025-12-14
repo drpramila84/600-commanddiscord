@@ -21,6 +21,10 @@ const Schema = new mongoose.Schema(
       streak: { type: Number, default: 0 },
       timestamp: Date,
     },
+    luck: {
+      percentage: { type: Number, default: 0 },
+      lastClaim: Date,
+    },
   },
   {
     timestamps: {
