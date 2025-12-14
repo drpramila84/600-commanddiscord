@@ -15,6 +15,7 @@ const { schemas } = require("@src/database/mongoose");
 const CommandCategory = require("./CommandCategory");
 const lavaclient = require("../handlers/lavaclient");
 const giveawaysHandler = require("../handlers/giveaway");
+const antinukeHandler = require("../handlers/antinuke");
 const { DiscordTogether } = require("discord-together");
 
 module.exports = class BotClient extends Client {
@@ -76,6 +77,9 @@ module.exports = class BotClient extends Client {
 
     // Discord Together
     this.discordTogether = new DiscordTogether(this);
+
+    // Antinuke Handler
+    antinukeHandler(this);
   }
 
   /**
