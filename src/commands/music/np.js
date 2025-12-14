@@ -38,16 +38,19 @@ function nowPlaying({ client, guildId }) {
   if (!player || !player.queue.current) return "🚫 No music is being played!";
 
   const track = player.queue.current;
-  const end = track.length > 6.048e8 ? "🔴 LIVE" : new Date(track.length).toISOString().slice(11, 19);
+  const trackTitle = track.title || track.info?.title || "Unknown";
+  const trackUri = track.uri || track.info?.uri || "";
+  const trackLength = track.length || track.info?.length || 0;
+  const end = trackLength > 6.048e8 ? "🔴 LIVE" : new Date(trackLength).toISOString().slice(11, 19);
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLORS.BOT_EMBED)
     .setAuthor({ name: "Now playing" })
-    .setDescription(`[${track.title}](${track.uri})`)
+    .setDescription(`[${trackTitle}](${trackUri})`)
     .addFields(
       {
         name: "Song Duration",
-        value: "`" + prettyMs(track.length, { colonNotation: true }) + "`",
+        value: "`" + prettyMs(trackLength, { colonNotation: true }) + "`",
         inline: true,
       },
       {
@@ -60,7 +63,7 @@ function nowPlaying({ client, guildId }) {
         value:
           new Date(player.position).toISOString().slice(11, 19) +
           " [" +
-          splitBar(track.length > 6.048e8 ? player.position : track.length, player.position, 15)[0] +
+          splitBar(trackLength > 6.048e8 ? player.position : trackLength, player.position, 15)[0] +
           "] " +
           end,
         inline: false,
