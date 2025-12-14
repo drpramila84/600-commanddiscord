@@ -58,9 +58,17 @@ function getQueue({ client, guild }, pgNo) {
 
   const tracks = queue.tracks.slice(start, end);
 
-  if (queue.current) embed.addFields({ name: "Current", value: `[${queue.current.title}](${queue.current.uri})` });
+  if (queue.current) {
+    const currentTitle = queue.current.title || queue.current.info?.title || "Unknown";
+    const currentUri = queue.current.uri || queue.current.info?.uri || "";
+    embed.addFields({ name: "Current", value: `[${currentTitle}](${currentUri})` });
+  }
   if (!tracks.length) embed.setDescription(`No tracks in ${page > 1 ? `page ${page}` : "the queue"}.`);
-  else embed.setDescription(tracks.map((track, i) => `${start + ++i} - [${track.title}](${track.uri})`).join("\n"));
+  else embed.setDescription(tracks.map((track, i) => {
+    const trackTitle = track.title || track.info?.title || "Unknown";
+    const trackUri = track.uri || track.info?.uri || "";
+    return `${start + ++i} - [${trackTitle}](${trackUri})`;
+  }).join("\n"));
 
   const maxPages = Math.ceil(queue.tracks.length / multiple);
 
