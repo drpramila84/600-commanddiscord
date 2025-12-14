@@ -43,22 +43,26 @@ module.exports = (client) => {
 
   lavaclient.on("nodeTrackStart", (_node, queue, song) => {
     const fields = [];
+    const songTitle = song.title || song.info?.title || "Unknown";
+    const songUri = song.uri || song.info?.uri || "";
+    const songLength = song.length || song.info?.length || 0;
+    const songIdentifier = song.identifier || song.info?.identifier || "";
+    const songSourceName = song.sourceName || song.info?.sourceName || "";
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: "Now Playing" })
       .setColor(client.config.EMBED_COLORS.BOT_EMBED)
-      .setDescription(`[${song.title}](${song.uri})`)
+      .setDescription(`[${songTitle}](${songUri})`)
       .setFooter({ text: `Requested By: ${song.requester}` });
 
-    if (song.sourceName === "youtube") {
-      const identifier = song.identifier;
-      const thumbnail = `https://img.youtube.com/vi/${identifier}/hqdefault.jpg`;
+    if (songSourceName === "youtube" && songIdentifier) {
+      const thumbnail = `https://img.youtube.com/vi/${songIdentifier}/hqdefault.jpg`;
       embed.setThumbnail(thumbnail);
     }
 
     fields.push({
       name: "Song Duration",
-      value: "`" + prettyMs(song.length, { colonNotation: true }) + "`",
+      value: "`" + prettyMs(songLength, { colonNotation: true }) + "`",
       inline: true,
     });
 
