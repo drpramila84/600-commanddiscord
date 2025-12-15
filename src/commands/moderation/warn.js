@@ -1,5 +1,5 @@
 const { warnTarget } = require("@helpers/ModUtils");
-const { ApplicationCommandOptionType } = require("discord.js");
+const { ApplicationCommandOptionType, EmbedBuilder } = require("discord.js");
 
 /**
  * @type {import("@structures/Command")}
@@ -52,7 +52,16 @@ module.exports = {
 
 async function warn(issuer, target, reason) {
   const response = await warnTarget(issuer, target, reason);
-  if (typeof response === "boolean") return `${target.user.username} is warned!`;
+  if (typeof response === "boolean") {
+    try {
+      const embed = new EmbedBuilder()
+        .setColor(0xff0000)
+        .setDescription(`You were warned in ${issuer.guild.name} for ${reason || "No reason provided"}`);
+      await target.user.send({ embeds: [embed] });
+    } catch (err) {
+    }
+    return `${target.user.username} is warned!`;
+  }
   if (response === "BOT_PERM") return `I do not have permission to warn ${target.user.username}`;
   else if (response === "MEMBER_PERM") return `You do not have permission to warn ${target.user.username}`;
   else return `Failed to warn ${target.user.username}`;
