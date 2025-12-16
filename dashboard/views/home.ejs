@@ -141,9 +141,244 @@
             font-size: 0.9em;
             opacity: 0.8;
         }
+        .menu-icon {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 45px;
+            height: 45px;
+            background: #000000;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1001;
+            gap: 5px;
+            padding: 10px;
+        }
+        .menu-icon span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #9a9c9e;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .menu-icon:hover span {
+            background: #ffffff;
+        }
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100vh;
+            background: #2d3136;
+            z-index: 1000;
+            transition: left 0.3s ease;
+            padding-top: 80px;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+        }
+        .side-menu.open {
+            left: 0;
+        }
+        .side-menu a {
+            display: block;
+            padding: 15px 25px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.1em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s;
+        }
+        .side-menu a:hover {
+            background: rgba(88, 101, 242, 0.3);
+        }
+        .menu-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .menu-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            color: #ffffff;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .menu-section-header:hover {
+            background: rgba(88, 101, 242, 0.3);
+        }
+        .menu-section-header .arrow {
+            transition: transform 0.3s;
+        }
+        .menu-section-header.open .arrow {
+            transform: rotate(180deg);
+        }
+        .menu-commands {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .menu-commands.open {
+            max-height: 60vh;
+        }
+        .menu-commands .cmd-category {
+            padding: 10px 25px;
+            color: #5865F2;
+            font-weight: bold;
+            font-size: 0.9em;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .menu-commands .cmd-item {
+            padding: 8px 30px;
+            color: #9a9c9e;
+            font-size: 0.85em;
+        }
+        .menu-commands .cmd-item span {
+            color: #ffffff;
+        }
     </style>
+    <script>
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('open');
+        }
+        function toggleCommands() {
+            document.getElementById('commandsHeader').classList.toggle('open');
+            document.getElementById('commandsList').classList.toggle('open');
+        }
+    </script>
 </head>
 <body>
+    <div class="menu-icon" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div class="side-menu" id="sideMenu">
+        <a href="/">Home</a>
+        <a href="#about">About</a>
+        <div class="menu-section">
+            <div class="menu-section-header" id="commandsHeader" onclick="toggleCommands()">
+                <span>Commands</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="menu-commands" id="commandsList">
+                <div class="cmd-category">MODERATION</div>
+                <div class="cmd-item"><span>/ban</span> - Ban a user</div>
+                <div class="cmd-item"><span>/kick</span> - Kick a user</div>
+                <div class="cmd-item"><span>/warn</span> - Warn a user</div>
+                <div class="cmd-item"><span>/warnings</span> - View warnings</div>
+                <div class="cmd-item"><span>/timeout</span> - Timeout a user</div>
+                <div class="cmd-item"><span>/untimeout</span> - Remove timeout</div>
+                <div class="cmd-item"><span>/unban</span> - Unban a user</div>
+                <div class="cmd-item"><span>/softban</span> - Softban a user</div>
+                <div class="cmd-item"><span>/nick</span> - Change nickname</div>
+                <div class="cmd-item"><span>/purge</span> - Delete messages</div>
+                
+                <div class="cmd-category">MUSIC</div>
+                <div class="cmd-item"><span>/play</span> - Play a song</div>
+                <div class="cmd-item"><span>/pause</span> - Pause music</div>
+                <div class="cmd-item"><span>/resume</span> - Resume music</div>
+                <div class="cmd-item"><span>/skip</span> - Skip song</div>
+                <div class="cmd-item"><span>/stop</span> - Stop music</div>
+                <div class="cmd-item"><span>/queue</span> - View queue</div>
+                <div class="cmd-item"><span>/np</span> - Now playing</div>
+                <div class="cmd-item"><span>/volume</span> - Adjust volume</div>
+                <div class="cmd-item"><span>/loop</span> - Toggle loop</div>
+                <div class="cmd-item"><span>/shuffle</span> - Shuffle queue</div>
+                <div class="cmd-item"><span>/lyric</span> - Get lyrics</div>
+                <div class="cmd-item"><span>/seek</span> - Seek to time</div>
+                <div class="cmd-item"><span>/bassboost</span> - Bass boost</div>
+                
+                <div class="cmd-category">ECONOMY</div>
+                <div class="cmd-item"><span>/daily</span> - Claim daily coins</div>
+                <div class="cmd-item"><span>/balance</span> - Check balance</div>
+                <div class="cmd-item"><span>/deposit</span> - Deposit coins</div>
+                <div class="cmd-item"><span>/withdraw</span> - Withdraw coins</div>
+                <div class="cmd-item"><span>/transfer</span> - Send coins</div>
+                <div class="cmd-item"><span>/gamble</span> - Gamble coins</div>
+                <div class="cmd-item"><span>/slot</span> - Slot machine</div>
+                <div class="cmd-item"><span>/beg</span> - Beg for coins</div>
+                <div class="cmd-item"><span>/bank</span> - View bank</div>
+                
+                <div class="cmd-category">FUN</div>
+                <div class="cmd-item"><span>/meme</span> - Random meme</div>
+                <div class="cmd-item"><span>/animal</span> - Animal pictures</div>
+                <div class="cmd-item"><span>/facts</span> - Random facts</div>
+                <div class="cmd-item"><span>/flip</span> - Flip a coin</div>
+                <div class="cmd-item"><span>/snake</span> - Snake game</div>
+                <div class="cmd-item"><span>/together</span> - Discord activities</div>
+                
+                <div class="cmd-category">GIVEAWAYS</div>
+                <div class="cmd-item"><span>/giveaway start</span> - Start giveaway</div>
+                <div class="cmd-item"><span>/giveaway end</span> - End giveaway</div>
+                <div class="cmd-item"><span>/giveaway reroll</span> - Reroll winner</div>
+                <div class="cmd-item"><span>/giveaway pause</span> - Pause giveaway</div>
+                <div class="cmd-item"><span>/giveaway resume</span> - Resume giveaway</div>
+                <div class="cmd-item"><span>/giveaway list</span> - List giveaways</div>
+                <div class="cmd-item"><span>/giveaway edit</span> - Edit giveaway</div>
+                
+                <div class="cmd-category">ADMIN</div>
+                <div class="cmd-item"><span>/setprefix</span> - Change prefix</div>
+                <div class="cmd-item"><span>/welcome</span> - Welcome messages</div>
+                <div class="cmd-item"><span>/farewell</span> - Farewell messages</div>
+                <div class="cmd-item"><span>/autorole</span> - Auto role</div>
+                <div class="cmd-item"><span>/automod</span> - Auto moderation</div>
+                <div class="cmd-item"><span>/maxwarn</span> - Max warnings</div>
+                <div class="cmd-item"><span>/modlog</span> - Mod log channel</div>
+                <div class="cmd-item"><span>/antinuke</span> - Anti-nuke</div>
+                <div class="cmd-item"><span>/embed</span> - Create embeds</div>
+                <div class="cmd-item"><span>/stealemoji</span> - Add emoji</div>
+                
+                <div class="cmd-category">UTILITY</div>
+                <div class="cmd-item"><span>/help</span> - Show commands</div>
+                <div class="cmd-item"><span>/ai</span> - Chat with AI</div>
+                <div class="cmd-item"><span>/translate</span> - Translate text</div>
+                <div class="cmd-item"><span>/weather</span> - Weather info</div>
+                <div class="cmd-item"><span>/pokedex</span> - Pokemon info</div>
+                <div class="cmd-item"><span>/github</span> - GitHub profile</div>
+                <div class="cmd-item"><span>/urban</span> - Urban Dictionary</div>
+                <div class="cmd-item"><span>/bigemoji</span> - Big emoji</div>
+                
+                <div class="cmd-category">INFORMATION</div>
+                <div class="cmd-item"><span>/userinfo</span> - User info</div>
+                <div class="cmd-item"><span>/avatar</span> - User avatar</div>
+                <div class="cmd-item"><span>/guildinfo</span> - Server info</div>
+                <div class="cmd-item"><span>/channelinfo</span> - Channel info</div>
+                <div class="cmd-item"><span>/emojiinfo</span> - Emoji info</div>
+                <div class="cmd-item"><span>/botstats</span> - Bot stats</div>
+                <div class="cmd-item"><span>/botinvite</span> - Invite link</div>
+                <div class="cmd-item"><span>/uptime</span> - Bot uptime</div>
+                <div class="cmd-item"><span>/ping</span> - Bot latency</div>
+                
+                <div class="cmd-category">TICKETS</div>
+                <div class="cmd-item"><span>/ticket setup</span> - Setup tickets</div>
+                <div class="cmd-item"><span>/ticketcat</span> - Ticket category</div>
+                
+                <div class="cmd-category">LEVELING & STATS</div>
+                <div class="cmd-item"><span>/rank</span> - View rank</div>
+                <div class="cmd-item"><span>/leaderboard</span> - Leaderboard</div>
+                <div class="cmd-item"><span>/xp</span> - XP settings</div>
+                <div class="cmd-item"><span>/stats</span> - Your stats</div>
+                <div class="cmd-item"><span>/statstracking</span> - Toggle tracking</div>
+                
+                <div class="cmd-category">INVITES</div>
+                <div class="cmd-item"><span>/invites</span> - Invite count</div>
+                <div class="cmd-item"><span>/inviter</span> - Who invited</div>
+                <div class="cmd-item"><span>/invitecodes</span> - Invite codes</div>
+                <div class="cmd-item"><span>/invitetracker</span> - Toggle tracking</div>
+                <div class="cmd-item"><span>/inviteranks</span> - Invite rewards</div>
+                <div class="cmd-item"><span>/addinvites</span> - Add invites</div>
+                <div class="cmd-item"><span>/resetinvites</span> - Reset invites</div>
+            </div>
+        </div>
+        <a href="https://discord.com/oauth2/authorize?client_id=1431655317829324972&permissions=8&integration_type=0&scope=bot+applications.commands" target="_blank">Invite Bot</a>
+    </div>
     <div class="container">
         <h1>WITHER BOT</h1>
         <div class="status">
@@ -153,7 +388,7 @@
 
         <hr class="divider">
 
-        <h2>About</h2>
+        <h2 id="about">About</h2>
         <div class="about-section">
             <p><span class="highlight">WITHER BOT</span> is a powerful, multipurpose Discord bot designed to enhance your server experience.</p>
             <p>Built with <span class="highlight">Discord.js v14</span>, it offers a wide range of features including moderation, economy, leveling, music, giveaways, and much more!</p>
