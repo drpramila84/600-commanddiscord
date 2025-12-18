@@ -8,26 +8,19 @@ const channelPerms = ["EmbedLinks", "ReadMessageHistory", "AddReactions", "UseEx
  * @type {import("@structures/Command")}
  */
 module.exports = {
-  name: "addrr",
-  description: "setup reaction role for the specified message",
+  name: "reactionrole",
+  description: "Adds emoji-role pair to a message through its ID",
   category: "ADMIN",
   userPermissions: ["ManageGuild"],
   command: {
     enabled: true,
-    usage: "<#channel> <messageId> <emote> <role>",
-    minArgsCount: 4,
+    usage: "<messageId> <emote> <role> [channel]",
+    minArgsCount: 3,
   },
   slashCommand: {
     enabled: true,
     ephemeral: true,
     options: [
-      {
-        name: "channel",
-        description: "channel where the message exists",
-        type: ApplicationCommandOptionType.Channel,
-        channelTypes: [ChannelType.GuildText],
-        required: true,
-      },
       {
         name: "message_id",
         description: "message id to which reaction roles must be configured",
@@ -46,6 +39,13 @@ module.exports = {
         type: ApplicationCommandOptionType.Role,
         required: true,
       },
+      {
+        name: "channel",
+        description: "channel where the message exists (optional)",
+        type: ApplicationCommandOptionType.Channel,
+        channelTypes: [ChannelType.GuildText],
+        required: false,
+      },
     ],
   },
 
@@ -54,18 +54,18 @@ module.exports = {
     if (targetChannel.length === 0) return message.safeReply(`No channels found matching ${args[0]}`);
 
     const targetMessage = args[1];
-
+    const reaction = args[2];
     const role = message.guild.findMatchingRoles(args[3])[0];
     if (!role) return message.safeReply(`No roles found matching ${args[3]}`);
-
-    const reaction = args[2];
 
     const response = await addRR(message.guild, targetChannel[0], targetMessage, reaction, role);
     await message.safeReply(response);
   },
 
   async interactionRun(interaction) {
-    const targetChannel = interaction.options.getChannel("channel");
+    let targetChannel = interaction.options.getChannel("channel");
+    if (!targetChannel) targetChannel = interaction.channel;
+    
     const messageId = interaction.options.getString("message_id");
     const reaction = interaction.options.getString("emoji");
     const role = interaction.options.getRole("role");
