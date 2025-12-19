@@ -61,6 +61,7 @@ const Schema = new mongoose.Schema({
   },
   modlog_channel: String,
   message_log_channel: String,
+  member_log_channel: String,
   max_warn: {
     action: {
       type: String,
