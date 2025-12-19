@@ -60,6 +60,7 @@ const Schema = new mongoose.Schema({
     enabled: Boolean,
   },
   modlog_channel: String,
+  message_log_channel: String,
   max_warn: {
     action: {
       type: String,
