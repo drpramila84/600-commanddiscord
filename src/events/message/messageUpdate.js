@@ -29,10 +29,10 @@ module.exports = async (client, oldMessage, newMessage) => {
     const embed = new EmbedBuilder()
       .setColor(EMBED_COLORS.BOT_EMBED)
       .setDescription(
-        `**Message edited in** <#${oldMessage.channelId}> • ❄️ ::**[BOT-UPDATE]**::\n🍷\n\n` +
+        `**Message edited in** <#${oldMessage.channelId}> • ❄️\n\n` +
         `**Before:** <#${oldMessage.channelId}> ${oldMessage.author.toString()}\n${oldMessage.content || "*No content*"}\n\n` +
         `**+After:** <#${oldMessage.channelId}> ${oldMessage.author.toString()}\n${newMessage.content || "*No content*"} 🎨\n\n` +
-        `**ID:** ${oldMessage.id} | <t:${timestamp}:R>`
+        `<t:${timestamp}:R>`
       )
       .setFooter({ text: `Author: ${oldMessage.author.tag}`, iconURL: oldMessage.author.displayAvatarURL() });
 
