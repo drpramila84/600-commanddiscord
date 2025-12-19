@@ -22,7 +22,7 @@ module.exports = async (client, message) => {
         const embed = new EmbedBuilder()
           .setColor(EMBED_COLORS.ERROR)
           .setDescription(
-            `**Message deleted in** <#${message.channelId}> • 🍷\n\n` +
+            `**Message deleted in** <#${message.channelId}> • \n\n` +
             `${message.content || "*No content*"}\n\n` +
             `**Message ID:** ${message.id}\n\n` +
             `<t:${timestamp}:f>`
