@@ -144,6 +144,7 @@ module.exports = {
               { name: "Kick Threshold", value: "kick_threshold" },
               { name: "Channel Threshold", value: "channel_threshold" },
               { name: "Role Threshold", value: "role_threshold" },
+              { name: "Raid Threshold", value: "raid_threshold" },
             ],
           },
           {
@@ -153,6 +154,23 @@ module.exports = {
             required: true,
             minValue: 1,
             maxValue: 10,
+          },
+        ],
+      },
+      {
+        name: "raid",
+        description: "configure raid protection settings",
+        type: ApplicationCommandOptionType.Subcommand,
+        options: [
+          {
+            name: "status",
+            description: "enable or disable raid protection",
+            type: ApplicationCommandOptionType.String,
+            required: true,
+            choices: [
+              { name: "ON", value: "ON" },
+              { name: "OFF", value: "OFF" },
+            ],
           },
         ],
       },
@@ -267,6 +285,13 @@ module.exports = {
       const typeName = type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
       return interaction.followUp(`**${typeName}** set to **${amount}** actions`);
     }
+
+    if (sub === "raid") {
+      const status = interaction.options.getString("status");
+      data.settings.antinuke.anti_raid = status === "ON";
+      await data.settings.save();
+      return interaction.followUp(`Raid protection has been **${status === "ON" ? "enabled" : "disabled"}**`);
+    }
   },
 };
 
@@ -294,13 +319,15 @@ function buildStatusEmbed(guild, settings) {
       { name: "Anti Role Create", value: antinuke.anti_role_create ? "✅" : "❌", inline: true },
       { name: "Anti Webhook Create", value: antinuke.anti_webhook_create !== false ? "✅" : "❌", inline: true },
       { name: "Anti Bot Add", value: antinuke.anti_bot_add !== false ? "✅" : "❌", inline: true },
+      { name: "Anti Raid", value: antinuke.anti_raid ? "✅" : "❌", inline: true },
       { name: "\u200b", value: "**Thresholds**", inline: false },
       { name: "Ban", value: `${antinuke.ban_threshold || 3} actions`, inline: true },
       { name: "Kick", value: `${antinuke.kick_threshold || 3} actions`, inline: true },
       { name: "Channel", value: `${antinuke.channel_threshold || 3} actions`, inline: true },
-      { name: "Role", value: `${antinuke.role_threshold || 3} actions`, inline: true }
+      { name: "Role", value: `${antinuke.role_threshold || 3} actions`, inline: true },
+      { name: "Raid", value: `${antinuke.raid_threshold || 5} joins`, inline: true }
     )
-    .setFooter({ text: `Time Window: ${antinuke.time_window || 10} seconds` })
+    .setFooter({ text: `Time Window: ${antinuke.time_window || 10}s | Raid Window: ${antinuke.raid_time_window || 10}s` })
     .setTimestamp();
 
   return embed;
