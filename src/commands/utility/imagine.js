@@ -54,7 +54,7 @@ async function generateImage(prompt) {
       const embed = new EmbedBuilder()
         .setColor("#FF0000")
         .setTitle("❌ Gemini API Not Configured")
-        .setDescription("Gemini API not configured. Please contact the bot owner.")
+        .setDescription("The bot owner needs to set up the Gemini API to use this feature. Please contact them for more information.")
         .setTimestamp();
       return { embeds: [embed] };
     }
@@ -121,4 +121,4 @@ async function generateImage(prompt) {
       content: `Error generating image: ${error.message || "Please try again later"}`,
     };
   }
-        }
+  }
