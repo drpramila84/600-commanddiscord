@@ -47,7 +47,7 @@ module.exports = {
 
 async function generateImage(prompt) {
   try {
-    const { GoogleGenAI, Modality } = await import("@google/genai");
+    const { GoogleGenAI } = require("@google/genai");
     
     const ai = new GoogleGenAI({
       apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
@@ -61,7 +61,7 @@ async function generateImage(prompt) {
       model: "gemini-2.5-flash-image",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
-        responseModalities: [Modality.TEXT, Modality.IMAGE],
+        responseModalities: ["TEXT", "IMAGE"],
       },
     });
 
@@ -94,4 +94,4 @@ async function generateImage(prompt) {
       content: `Error generating image: ${error.message || "Please try again later"}`,
     };
   }
-}
+        }
