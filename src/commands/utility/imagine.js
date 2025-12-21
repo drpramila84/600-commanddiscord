@@ -39,7 +39,7 @@ module.exports = {
   botPermissions: ["EmbedLinks", "AttachFiles"],
   command: {
     enabled: true,
-    usage: "<prompt>",
+    usage: "<prompt> [size]",
     minArgsCount: 1,
   },
   slashCommand: {
@@ -47,32 +47,54 @@ module.exports = {
     options: [
       {
         name: "prompt",
-        description: "Describe the image you want to generate",
+        description: "The prompt to generate an image from.",
         type: ApplicationCommandOptionType.String,
         required: true,
         minLength: 5,
         maxLength: 1000,
       },
+      {
+        name: "size",
+        description: "The size of the image to generate",
+        type: ApplicationCommandOptionType.String,
+        required: false,
+        choices: [
+          { name: "256x256", value: "256x256" },
+          { name: "512x512", value: "512x512" },
+          { name: "1024x1024", value: "1024x1024" },
+        ],
+      },
     ],
   },
 
   async messageRun(message, args) {
-    const prompt = args.join(" ");
+    const validSizes = ["256x256", "512x512", "1024x1024"];
+    let size = "1024x1024";
+    let promptArgs = args;
+    
+    // Check if last argument is a size
+    if (validSizes.includes(args[args.length - 1])) {
+      size = args[args.length - 1];
+      promptArgs = args.slice(0, -1);
+    }
+    
+    const prompt = promptArgs.join(" ");
     if (prompt.length < 5) {
       return message.safeReply("Prompt must be at least 5 characters long!");
     }
-    const response = await generateImage(prompt);
+    const response = await generateImage(prompt, size);
     return message.safeReply(response);
   },
 
   async interactionRun(interaction) {
     const prompt = interaction.options.getString("prompt");
-    const response = await generateImage(prompt);
+    const size = interaction.options.getString("size") || "1024x1024";
+    const response = await generateImage(prompt, size);
     await interaction.followUp(response);
   },
 };
 
-async function generateImage(prompt) {
+async function generateImage(prompt, size = "1024x1024") {
   try {
     await initializeAI();
 
@@ -90,7 +112,7 @@ async function generateImage(prompt) {
       model: "gemini-2.5-flash-image",
       contents: [{
         role: "user",
-        parts: [{ text: prompt }]
+        parts: [{ text: `${prompt}\n\nGenerate at ${size} resolution` }]
       }],
     });
 
@@ -149,4 +171,4 @@ async function generateImage(prompt) {
       content: `Error generating image: ${error.message || "Please try again later"}`,
     };
   }
-}
+}  
