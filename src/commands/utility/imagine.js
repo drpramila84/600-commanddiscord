@@ -1,6 +1,23 @@
 const { ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { EMBED_COLORS } = require("@root/config.js");
 
+let ai = null;
+let Modality = null;
+
+async function initializeAI() {
+  if (!ai) {
+    const { GoogleGenAI, Modality: ModEnum } = await import("@google/genai");
+    Modality = ModEnum;
+    ai = new GoogleGenAI({
+      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      httpOptions: {
+        apiVersion: "",
+        baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+      },
+    });
+  }
+}
+
 /**
  * @type {import("@structures/Command")}
  */
@@ -47,10 +64,9 @@ module.exports = {
 
 async function generateImage(prompt) {
   try {
-    const apiKey = process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
-    const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
+    await initializeAI();
 
-    if (!apiKey) {
+    if (!process.env.AI_INTEGRATIONS_GEMINI_API_KEY || !process.env.AI_INTEGRATIONS_GEMINI_BASE_URL) {
       const embed = new EmbedBuilder()
         .setColor("#FF0000")
         .setTitle("❌ Gemini API Not Configured")
@@ -59,66 +75,68 @@ async function generateImage(prompt) {
       return { embeds: [embed] };
     }
 
-    const url = `${baseUrl}/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
-
-    const requestBody = {
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-      },
-    };
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
+    // Use gemini-2.5-flash-image for image generation
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: [{
+        role: "user",
+        parts: [{ text: prompt }]
+      }],
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Gemini API Error:", error);
-      return { content: "Failed to generate image. Please try again later." };
-    }
+    console.log("Image generation response:", response);
 
-    const data = await response.json();
-    const candidate = data.candidates?.[0];
-    const imagePart = candidate?.content?.parts?.find((part) => part.inlineData);
-
-    if (!imagePart?.inlineData?.data) {
+    const candidate = response.candidates?.[0];
+    if (!candidate) {
+      console.error("No candidates in response");
       return { content: "Failed to generate image. Please try again with a different prompt." };
     }
 
-    const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
-    const mimeType = imagePart.inlineData.mimeType || "image/png";
-    const extension = mimeType.split("/")[1] || "png";
+    // Look for image data in the response
+    const imagePart = candidate?.content?.parts?.find((part) => part.inlineData);
+    
+    // If we have image data, return it
+    if (imagePart?.inlineData?.data) {
+      const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
+      const mimeType = imagePart.inlineData.mimeType || "image/png";
+      const extension = mimeType.split("/")[1] || "png";
 
-    const attachment = new AttachmentBuilder(imageBuffer, {
-      name: `generated-image.${extension}`,
-    });
+      const attachment = new AttachmentBuilder(imageBuffer, {
+        name: `generated-image.${extension}`,
+      });
 
-    const embed = new EmbedBuilder()
-      .setColor(EMBED_COLORS.BOT_EMBED)
-      .setTitle("✨ Generated Image")
-      .setDescription(prompt)
-      .setImage(`attachment://generated-image.${extension}`)
-      .setTimestamp();
+      const embed = new EmbedBuilder()
+        .setColor(EMBED_COLORS.BOT_EMBED)
+        .setTitle("✨ Generated Image")
+        .setDescription(prompt)
+        .setImage(`attachment://generated-image.${extension}`)
+        .setTimestamp();
 
-    return { embeds: [embed], files: [attachment] };
+      return { embeds: [embed], files: [attachment] };
+    }
+
+    // Fallback: if no image data, create a description-based response
+    const textPart = candidate?.content?.parts?.find((part) => part.text);
+    if (textPart?.text) {
+      const embed = new EmbedBuilder()
+        .setColor(EMBED_COLORS.BOT_EMBED)
+        .setTitle("✨ Image Generation Result")
+        .setDescription(textPart.text)
+        .setTimestamp();
+      return { embeds: [embed] };
+    }
+
+    return { content: "Failed to generate image. Please try again with a different prompt." };
   } catch (error) {
     console.error("Imagine command error:", error);
+    console.error("Error details:", {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      stack: error.stack,
+    });
     return {
       content: `Error generating image: ${error.message || "Please try again later"}`,
     };
   }
-  }
+}
