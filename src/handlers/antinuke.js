@@ -3,9 +3,14 @@ const { getSettings } = require("@schemas/Guild");
 const { EMBED_COLORS } = require("@root/config");
 
 const actionTracker = new Map();
+const raidTracker = new Map();
 
 function getActionKey(guildId, userId, actionType) {
   return `${guildId}-${userId}-${actionType}`;
+}
+
+function getRaidKey(guildId) {
+  return `raid-${guildId}`;
 }
 
 function trackAction(guildId, userId, actionType, timeWindow) {
@@ -31,12 +36,35 @@ function clearActions(guildId, userId, actionType) {
   actionTracker.delete(key);
 }
 
+function trackRaidJoin(guildId, timeWindow = 10) {
+  const key = getRaidKey(guildId);
+  const now = Date.now();
+
+  if (!raidTracker.has(key)) {
+    raidTracker.set(key, []);
+  }
+
+  const joins = raidTracker.get(key);
+  joins.push(now);
+
+  const windowMs = timeWindow * 1000;
+  const filtered = joins.filter((time) => now - time < windowMs);
+  raidTracker.set(key, filtered);
+
+  return filtered.length;
+}
+
+function clearRaidJoins(guildId) {
+  const key = getRaidKey(guildId);
+  raidTracker.delete(key);
+}
+
 async function sendLog(guild, settings, embed) {
   if (!settings.antinuke?.log_channel) return;
 
   try {
     const channel = guild.channels.cache.get(settings.antinuke.log_channel);
-    if (channel) {
+    if (channel && channel.canSendEmbeds()) {
       await channel.send({ embeds: [embed] });
     }
   } catch (error) {
@@ -293,27 +321,54 @@ module.exports = (client) => {
   });
 
   client.on("guildMemberAdd", async (member) => {
-    if (!member.user.bot) return;
     const settings = await getSettings(member.guild);
-    if (!settings.antinuke?.enabled || !settings.antinuke?.anti_bot_add) return;
+    if (!settings.antinuke?.enabled) return;
 
-    const executor = await getAuditExecutor(member.guild, AuditLogEvent.BotAdd);
-    if (!executor || isWhitelisted(settings, executor.id, member.guild)) return;
+    // Anti-bot detection
+    if (member.user.bot && settings.antinuke?.anti_bot_add) {
+      const executor = await getAuditExecutor(member.guild, AuditLogEvent.BotAdd);
+      if (executor && !isWhitelisted(settings, executor.id, member.guild)) {
+        await member.kick("[Antinuke] Unauthorized bot addition").catch(() => {});
+        const result = await punishUser(member.guild, executor.id, settings, "Unauthorized bot addition");
 
-    await member.kick("[Antinuke] Unauthorized bot addition").catch(() => {});
-    const result = await punishUser(member.guild, executor.id, settings, "Unauthorized bot addition");
+        const embed = new EmbedBuilder()
+          .setColor(EMBED_COLORS.ERROR)
+          .setTitle("🤖 Antinuke: Unauthorized Bot Addition")
+          .setDescription(`**${executor.tag}** was ${result} for adding a bot without permission`)
+          .addFields(
+            { name: "Executor", value: `${executor.tag} (${executor.id})`, inline: true },
+            { name: "Bot Added", value: `${member.user.tag} (${member.user.id})`, inline: true }
+          )
+          .setTimestamp();
 
-    const embed = new EmbedBuilder()
-      .setColor(EMBED_COLORS.ERROR)
-      .setTitle("Antinuke: Unauthorized Bot Addition")
-      .setDescription(`**${executor.tag}** was ${result} for adding a bot without permission`)
-      .addFields(
-        { name: "Executor", value: `${executor.tag} (${executor.id})`, inline: true },
-        { name: "Bot Added", value: `${member.user.tag} (${member.user.id})`, inline: true }
-      )
-      .setTimestamp();
+        await sendLog(member.guild, settings, embed);
+      }
+      return;
+    }
 
-    await sendLog(member.guild, settings, embed);
+    // Raid detection (users joining quickly)
+    if (settings.antinuke?.anti_raid) {
+      const raidThreshold = settings.antinuke?.raid_threshold || 5;
+      const raidTimeWindow = settings.antinuke?.raid_time_window || 10;
+      const joinCount = trackRaidJoin(member.guild.id, raidTimeWindow);
+
+      if (joinCount >= raidThreshold) {
+        // Kick the new member
+        await member.kick("[Antinuke] Raid detected").catch(() => {});
+        
+        const embed = new EmbedBuilder()
+          .setColor(EMBED_COLORS.ERROR)
+          .setTitle("⚠️ Antinuke: Raid Detected")
+          .setDescription(`A potential raid is in progress! Users are joining too quickly.`)
+          .addFields(
+            { name: "Recent Joins", value: `${joinCount} users in ${raidTimeWindow}s`, inline: true },
+            { name: "Last Joiner", value: `${member.user.tag} (kicked)`, inline: true }
+          )
+          .setTimestamp();
+
+        await sendLog(member.guild, settings, embed);
+      }
+    }
   });
 
   client.logger.log("Antinuke handler initialized");
