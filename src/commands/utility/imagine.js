@@ -47,7 +47,7 @@ module.exports = {
 
 async function generateImage(prompt) {
   try {
-    const { GoogleGenAI } = require("@google/genai");
+    const { GoogleGenAI } = await import("@google/genai");
     
     const ai = new GoogleGenAI({
       apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
