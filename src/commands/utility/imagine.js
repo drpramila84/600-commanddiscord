@@ -47,25 +47,47 @@ module.exports = {
 
 async function generateImage(prompt) {
   try {
-    const { GoogleGenAI } = await import("@google/genai");
-    
-    const ai = new GoogleGenAI({
-      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
-      httpOptions: {
-        apiVersion: "",
-        baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-      },
-    });
+    const apiKey = process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
+    const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: {
+    if (!apiKey) {
+      return { content: "Gemini API not configured. Please contact the bot owner." };
+    }
+
+    const url = `${baseUrl}/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
         responseModalities: ["TEXT", "IMAGE"],
       },
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
 
-    const candidate = response.candidates?.[0];
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Gemini API Error:", error);
+      return { content: "Failed to generate image. Please try again later." };
+    }
+
+    const data = await response.json();
+    const candidate = data.candidates?.[0];
     const imagePart = candidate?.content?.parts?.find((part) => part.inlineData);
 
     if (!imagePart?.inlineData?.data) {
