@@ -1,33 +1,6 @@
 const { ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { EMBED_COLORS } = require("@root/config.js");
 
-let aiInitialized = false;
-let ai = null;
-let Modality = null;
-
-async function initializeAI() {
-  if (aiInitialized) return;
-  
-  try {
-    // Try to import @google/genai
-    const genaiModule = await import("@google/genai");
-    const { GoogleGenAI, Modality: ModEnum } = genaiModule;
-    
-    Modality = ModEnum;
-    ai = new GoogleGenAI({
-      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "default-key",
-      httpOptions: {
-        apiVersion: "",
-        baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-      },
-    });
-    aiInitialized = true;
-  } catch (error) {
-    console.error("Failed to initialize AI:", error);
-    throw new Error("Gemini AI library not available");
-  }
-}
-
 /**
  * @type {import("@structures/Command")}
  */
@@ -96,9 +69,10 @@ module.exports = {
 
 async function generateImage(prompt, size = "1024x1024") {
   try {
-    await initializeAI();
+    const apiKey = process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
+    const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
 
-    if (!process.env.AI_INTEGRATIONS_GEMINI_API_KEY || !process.env.AI_INTEGRATIONS_GEMINI_BASE_URL) {
+    if (!apiKey || !baseUrl) {
       const embed = new EmbedBuilder()
         .setColor("#FF0000")
         .setTitle("❌ Gemini API Not Configured")
@@ -107,27 +81,46 @@ async function generateImage(prompt, size = "1024x1024") {
       return { embeds: [embed] };
     }
 
-    // Use gemini-2.5-flash-image for image generation
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: [{
-        role: "user",
-        parts: [{ text: `${prompt}\n\nGenerate at ${size} resolution` }]
-      }],
+    const url = `${baseUrl}/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `${prompt}\n\nGenerate at ${size} resolution`,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"],
+      },
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
 
-    console.log("Image generation response:", response);
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Gemini API Error:", error);
+      return { content: "Failed to generate image. Please check your API credentials and try again." };
+    }
 
-    const candidate = response.candidates?.[0];
+    const data = await response.json();
+    const candidate = data.candidates?.[0];
     if (!candidate) {
-      console.error("No candidates in response");
       return { content: "Failed to generate image. Please try again with a different prompt." };
     }
 
-    // Look for image data in the response
     const imagePart = candidate?.content?.parts?.find((part) => part.inlineData);
-    
-    // If we have image data, return it
+
     if (imagePart?.inlineData?.data) {
       const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
       const mimeType = imagePart.inlineData.mimeType || "image/png";
@@ -161,14 +154,8 @@ async function generateImage(prompt, size = "1024x1024") {
     return { content: "Failed to generate image. Please try again with a different prompt." };
   } catch (error) {
     console.error("Imagine command error:", error);
-    console.error("Error details:", {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      stack: error.stack,
-    });
     return {
       content: `Error generating image: ${error.message || "Please try again later"}`,
     };
   }
-}  
+}
