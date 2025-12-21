@@ -1,119 +1,57 @@
-const { ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder } = require("discord.js");
-const { EMBED_COLORS } = require("@root/config.js");
+const { ApplicationCommandOptionType, ChannelType } = require("discord.js");
+const { getSettings } = require("@schemas/Guild");
 
 /**
  * @type {import("@structures/Command")}
  */
 module.exports = {
-  name: "imagine",
-  description: "Generate an image using AI (Gemini)",
-  cooldown: 10,
+  name: "log_member_channel",
+  description: "Sets the channel where member events are logged",
   category: "UTILITY",
-  botPermissions: ["EmbedLinks", "AttachFiles"],
+  userPermissions: ["Administrator"],
+  botPermissions: ["EmbedLinks"],
   command: {
     enabled: true,
-    usage: "<prompt>",
-    minArgsCount: 1,
+    usage: "[channel]",
   },
   slashCommand: {
     enabled: true,
     options: [
       {
-        name: "prompt",
-        description: "Describe the image you want to generate",
-        type: ApplicationCommandOptionType.String,
-        required: true,
-        minLength: 5,
-        maxLength: 1000,
+        name: "channel",
+        description: "the channel to log member events",
+        type: ApplicationCommandOptionType.Channel,
+        channelTypes: [ChannelType.GuildText],
+        required: false,
       },
     ],
   },
 
   async messageRun(message, args) {
-    const prompt = args.join(" ");
-    if (prompt.length < 5) {
-      return message.safeReply("Prompt must be at least 5 characters long!");
+    const channel = message.mentions.channels.first() || message.guild.channels.cache.get(args[0]);
+
+    if (!channel) {
+      return message.safeReply("Please provide a valid channel to set as the member log channel");
     }
-    const response = await generateImage(prompt);
-    return message.safeReply(response);
+
+    const settings = await getSettings(message.guild);
+    settings.member_log_channel = channel.id;
+    await settings.save();
+
+    return message.safeReply(`✅ Member log channel set to ${channel}`);
   },
 
   async interactionRun(interaction) {
-    const prompt = interaction.options.getString("prompt");
-    const response = await generateImage(prompt);
-    await interaction.followUp(response);
+    const channel = interaction.options.getChannel("channel");
+
+    if (!channel) {
+      return interaction.followUp("Please provide a valid channel to set as the member log channel");
+    }
+
+    const settings = await getSettings(interaction.guild);
+    settings.member_log_channel = channel.id;
+    await settings.save();
+
+    return interaction.followUp({ content: `✅ Member log channel set to ${channel}` });
   },
 };
-
-async function generateImage(prompt) {
-  try {
-    const apiKey = process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
-    const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
-
-    if (!apiKey) {
-      return { content: "Gemini API not configured. Please contact the bot owner." };
-    }
-
-    const url = `${baseUrl}/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
-
-    const requestBody = {
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"],
-      },
-    };
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Gemini API Error:", error);
-      return { content: "Failed to generate image. Please try again later." };
-    }
-
-    const data = await response.json();
-    const candidate = data.candidates?.[0];
-    const imagePart = candidate?.content?.parts?.find((part) => part.inlineData);
-
-    if (!imagePart?.inlineData?.data) {
-      return { content: "Failed to generate image. Please try again with a different prompt." };
-    }
-
-    const imageBuffer = Buffer.from(imagePart.inlineData.data, "base64");
-    const mimeType = imagePart.inlineData.mimeType || "image/png";
-    const extension = mimeType.split("/")[1] || "png";
-
-    const attachment = new AttachmentBuilder(imageBuffer, {
-      name: `generated-image.${extension}`,
-    });
-
-    const embed = new EmbedBuilder()
-      .setColor(EMBED_COLORS.BOT_EMBED)
-      .setTitle("✨ Generated Image")
-      .setDescription(prompt)
-      .setImage(`attachment://generated-image.${extension}`)
-      .setTimestamp();
-
-    return { embeds: [embed], files: [attachment] };
-  } catch (error) {
-    console.error("Imagine command error:", error);
-    return {
-      content: `Error generating image: ${error.message || "Please try again later"}`,
-    };
-  }
-        }
