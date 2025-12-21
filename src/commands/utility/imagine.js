@@ -1,20 +1,30 @@
 const { ApplicationCommandOptionType, AttachmentBuilder, EmbedBuilder } = require("discord.js");
 const { EMBED_COLORS } = require("@root/config.js");
 
+let aiInitialized = false;
 let ai = null;
 let Modality = null;
 
 async function initializeAI() {
-  if (!ai) {
-    const { GoogleGenAI, Modality: ModEnum } = await import("@google/genai");
+  if (aiInitialized) return;
+  
+  try {
+    // Try to import @google/genai
+    const genaiModule = await import("@google/genai");
+    const { GoogleGenAI, Modality: ModEnum } = genaiModule;
+    
     Modality = ModEnum;
     ai = new GoogleGenAI({
-      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY,
+      apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "default-key",
       httpOptions: {
         apiVersion: "",
         baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
       },
     });
+    aiInitialized = true;
+  } catch (error) {
+    console.error("Failed to initialize AI:", error);
+    throw new Error("Gemini AI library not available");
   }
 }
 
