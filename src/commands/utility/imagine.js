@@ -51,7 +51,12 @@ async function generateImage(prompt) {
     const baseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL;
 
     if (!apiKey) {
-      return { content: "Gemini API not configured. Please contact the bot owner." };
+      const embed = new EmbedBuilder()
+        .setColor("#FF0000")
+        .setTitle("❌ Gemini API Not Configured")
+        .setDescription("Gemini API not configured. Please contact the bot owner.")
+        .setTimestamp();
+      return { embeds: [embed] };
     }
 
     const url = `${baseUrl}/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
@@ -116,4 +121,4 @@ async function generateImage(prompt) {
       content: `Error generating image: ${error.message || "Please try again later"}`,
     };
   }
-  }
+        }
