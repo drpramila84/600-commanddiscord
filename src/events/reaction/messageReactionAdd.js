@@ -19,13 +19,42 @@ module.exports = async (client, reaction, user) => {
   const { message, emoji } = reaction;
   if (user.bot) return;
 
+  const settings = await getSettings(message.guild);
+
+  // Handle Verification Reactions
+  if (settings.verification?.enabled) {
+    if (message.id && settings.verification.message_id === message.id) {
+      const verifyEmoji = settings.verification.emoji || "✓";
+      
+      // Check if the reaction matches the verification emoji
+      const isVerifyEmoji = emoji.id ? emoji.id === verifyEmoji : emoji.name === verifyEmoji;
+      
+      if (isVerifyEmoji) {
+        const roleId = settings.verification.role_id;
+        const role = message.guild.roles.cache.get(roleId);
+        
+        if (!role) {
+          return;
+        }
+        
+        try {
+          const member = await message.guild.members.fetch(user.id);
+          await member.roles.add(roleId);
+        } catch (error) {
+          // Silent fail
+        }
+        return;
+      }
+    }
+  }
+
   // Reaction Roles
   reactionRoleHandler.handleReactionAdd(reaction, user);
 
   // Handle Reaction Emojis
   if (!emoji.id) {
     // Translation By Flags
-    if (message.content && (await getSettings(message.guild)).flag_translation.enabled) {
+    if (message.content && settings.flag_translation.enabled) {
       if (isValidEmoji(emoji.name)) {
         translationHandler.handleFlagReaction(emoji.name, message, user);
       }
