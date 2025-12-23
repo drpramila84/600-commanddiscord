@@ -124,7 +124,20 @@ async function getHelpMenu({ client, guild }) {
     .setEmoji('1238429509795971116')
     .setURL("https://top.gg/bot/1431655317829324972?s=0c4ac09a6d54f");
 
+  const previousButton = new ButtonBuilder()
+    .setCustomId("previousBtn")
+    .setLabel("◀ Previous")
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(true);
+
+  const nextButton = new ButtonBuilder()
+    .setCustomId("nextBtn")
+    .setLabel("Next ▶")
+    .setStyle(ButtonStyle.Secondary)
+    .setDisabled(true);
+
   const buttonsRow = new ActionRowBuilder().addComponents([supportButton, inviteButton, voteButton]);
+  const paginationRow = new ActionRowBuilder().addComponents([previousButton, nextButton]);
 
   const embed = new EmbedBuilder()
     .setColor(EMBED_COLORS.BOT_EMBED)
@@ -165,7 +178,7 @@ async function getHelpMenu({ client, guild }) {
 
   return {
     embeds: [embed],
-    components: [menuRow, buttonsRow],
+    components: [menuRow, paginationRow, buttonsRow],
   };
 }
 
@@ -186,7 +199,8 @@ const waiter = (msg, userId, prefix) => {
   let arrEmbeds = [];
   let currentPage = 0;
   let menuRow = msg.components[0];
-  let buttonsRow = msg.components[1];
+  let paginationRow = msg.components[1];
+  let buttonsRow = msg.components[2];
 
   collector.on("collect", async (response) => {
     if (!["help-menu", "previousBtn", "nextBtn"].includes(response.customId)) return;
@@ -198,28 +212,28 @@ const waiter = (msg, userId, prefix) => {
         arrEmbeds = prefix ? getMsgCategoryEmbeds(msg.client, cat, prefix) : getSlashCategoryEmbeds(msg.client, cat);
         currentPage = 0;
 
-        // Buttons Row
-        let components = [];
-        buttonsRow.components.forEach((button) =>
-          components.push(ButtonBuilder.from(button).setDisabled(arrEmbeds.length > 1 ? false : true))
+        // Pagination Buttons Row
+        let paginationComponents = [];
+        paginationRow.components.forEach((button) =>
+          paginationComponents.push(ButtonBuilder.from(button).setDisabled(arrEmbeds.length > 1 ? false : true))
         );
 
-        buttonsRow = new ActionRowBuilder().addComponents(components);
-        msg.editable && (await msg.edit({ embeds: [arrEmbeds[currentPage]], components: [menuRow, buttonsRow] }));
+        paginationRow = new ActionRowBuilder().addComponents(paginationComponents);
+        msg.editable && (await msg.edit({ embeds: [arrEmbeds[currentPage]], components: [menuRow, paginationRow, buttonsRow] }));
         break;
       }
 
       case "previousBtn":
         if (currentPage !== 0) {
           --currentPage;
-          msg.editable && (await msg.edit({ embeds: [arrEmbeds[currentPage]], components: [menuRow, buttonsRow] }));
+          msg.editable && (await msg.edit({ embeds: [arrEmbeds[currentPage]], components: [menuRow, paginationRow, buttonsRow] }));
         }
         break;
 
       case "nextBtn":
         if (currentPage < arrEmbeds.length - 1) {
           currentPage++;
-          msg.editable && (await msg.edit({ embeds: [arrEmbeds[currentPage]], components: [menuRow, buttonsRow] }));
+          msg.editable && (await msg.edit({ embeds: [arrEmbeds[currentPage]], components: [menuRow, paginationRow, buttonsRow] }));
         }
         break;
     }
@@ -381,4 +395,4 @@ function getMsgCategoryEmbeds(client, category, prefix) {
   });
 
   return arrEmbeds;
-}
+    }
