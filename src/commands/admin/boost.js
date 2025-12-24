@@ -100,7 +100,7 @@ module.exports = {
       if (!msg) return message.reply("Please provide a message");
       settings.boost.message = msg;
       await settings.save();
-      return message.reply(`<:emoji:944815067935948900> Boost message set to: \`${msg}\``);
+      return message.reply(`✅ Boost message set to: \`${msg}\``);
     }
 
     if (subcommand === "edit") {
@@ -109,7 +109,7 @@ module.exports = {
       if (!settings.boost.message) return message.reply("No boost message set yet. Use `boost setmessage` first");
       settings.boost.message = msg;
       await settings.save();
-      return message.reply(`<:emoji:944815067935948900> Boost message updated to: \`${msg}\``);
+      return message.reply(`✅ Boost message updated to: \`${msg}\``);
     }
 
     if (subcommand === "role") {
@@ -117,7 +117,7 @@ module.exports = {
       if (!role) return message.reply("Please provide a valid role");
       settings.boost.role = role.id;
       await settings.save();
-      return message.reply(`<:emoji:944815067935948900> Boost role set to ${role}`);
+      return message.reply(`✅ Boost role set to ${role}`);
     }
 
     if (subcommand === "setchannel") {
@@ -125,7 +125,7 @@ module.exports = {
       if (!channel || channel.type !== ChannelType.GuildText) return message.reply("Please provide a valid text channel");
       settings.boost.channel = channel.id;
       await settings.save();
-      return message.reply(`<:emoji:944815067935948900> Boost notification channel set to ${channel}`);
+      return message.reply(`✅ Boost notification channel set to ${channel}`);
     }
 
     if (subcommand === "image") {
@@ -134,17 +134,17 @@ module.exports = {
       if (!imageUrl.startsWith("http")) return message.reply("Please provide a valid URL");
       settings.boost.image = imageUrl;
       await settings.save();
-      return message.reply(`<:emoji:944815067935948900> Boost image set to: ${imageUrl}`);
+      return message.reply(`✅ Boost image set to: ${imageUrl}`);
     }
 
     if (subcommand === "test") {
       if (!settings.boost.message) return message.reply("❌ No boost message configured. Use `boost setmessage` first");
       
       const testChannel = settings.boost.channel ? message.guild.channels.cache.get(settings.boost.channel) : message.channel;
-     if (!testChannel) return message.reply("❌ Configured boost channel not found");
+      if (!testChannel) return message.reply("❌ Configured boost channel not found");
 
       const embed = new EmbedBuilder()
-        .setTitle("<:emoji:944815067935948900> Server Boost Test")
+        .setTitle(" <:boost:1453320031323553804> Server Boost Test")
         .setDescription(settings.boost.message)
         .setColor("#FF73FA");
 
@@ -156,19 +156,19 @@ module.exports = {
       embed.addFields({ name: "Role Reward", value: roleText, inline: true });
 
       await testChannel.send({ embeds: [embed] });
-      return message.reply(`<:emoji:944815067935948900> Boost notification test sent to ${testChannel}`);
+      return message.reply(`✅ Boost notification test sent to ${testChannel}`);
     }
 
     if (subcommand === "removechannel") {
-      if (!settings.boost.channel) return message.reply("<:emoji:944815067935948900> No boost channel configured");
+      if (!settings.boost.channel) return message.reply("❌ No boost channel configured");
       settings.boost.channel = null;
       await settings.save();
-      return message.reply(`<:emoji:944815067935948900> Boost notification channel removed`);
+      return message.reply(`✅ Boost notification channel removed`);
     }
 
     if (subcommand === "display") {
       const embed = new EmbedBuilder()
-        .setTitle("<:emoji:944815067935948900> Boost Settings")
+        .setTitle(" <:boost:1453320031323553804> Boost Settings")
         .setColor("#FF73FA");
 
       const message_text = settings.boost.message || "Not configured";
@@ -177,10 +177,10 @@ module.exports = {
       const image_text = settings.boost.image ? "Configured" : "Not configured";
 
       embed.addFields(
-        { name: "<:emoji:944815067935948900> Message", value: message_text, inline: false },
-        { name: "<:emoji:944815067935948900> Channel", value: channel_text, inline: true },
-        { name: "<:emoji:944815067935948900> Role", value: role_text, inline: true },
-        { name: "<:emoji:944815067935948900> Image", value: image_text, inline: true }
+        { name: "📝 Message", value: message_text, inline: false },
+        { name: "📢 Channel", value: channel_text, inline: true },
+        { name: "🎖️ Role", value: role_text, inline: true },
+        { name: "🖼️ Image", value: image_text, inline: true }
       );
 
       return message.reply({ embeds: [embed] });
