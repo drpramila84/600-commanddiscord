@@ -144,7 +144,7 @@ module.exports = {
       if (!testChannel) return message.reply("❌ Configured boost channel not found");
 
       const embed = new EmbedBuilder()
-        .setTitle("🎉 Server Boost Test")
+        .setTitle("<:emoji:944815067935948900> Server Boost Test")
         .setDescription(settings.boost.message)
         .setColor("#FF73FA");
 
