@@ -24,6 +24,7 @@ const parse = (content, member, level) => {
 };
 
 module.exports = {
+  parse,
   /**
    * This function saves stats for a new message
    * @param {import("discord.js").Message} message
@@ -66,7 +67,36 @@ module.exports = {
       const xpChannel = settings.stats.xp.channel && message.guild.channels.cache.get(settings.stats.xp.channel);
       const lvlUpChannel = xpChannel || message.channel;
 
-      lvlUpChannel.safeSend(lvlUpMessage);
+      const { AttachmentBuilder } = require("discord.js");
+      const canvacord = require("canvacord");
+      const { getXpLb } = require("@schemas/MemberStats");
+      const path = require("path");
+
+      const lb = await getXpLb(message.guildId, 100);
+      let pos = -1;
+      lb.forEach((doc, i) => {
+        if (doc.member_id == message.member.id) {
+          pos = i + 1;
+        }
+      });
+      const rank = pos !== -1 ? pos : 0;
+
+      const bgPath = path.join(process.cwd(), "attached_assets/levelup_1766934035446.png");
+
+      const fs = require("fs");
+      const rankCard = new canvacord.RankCardBuilder()
+        .setAvatar(message.member.user.displayAvatarURL({ extension: "png", size: 512 }))
+        .setCurrentXP(statsDb.xp)
+        .setRequiredXP(level * level * 100)
+        .setStatus(message.member.presence?.status || "offline")
+        .setUsername(message.member.user.username)
+        .setRank(rank)
+        .setLevel(level)
+        .setBackground(fs.readFileSync(bgPath));
+
+      const data = await rankCard.build();
+      const attachment = new AttachmentBuilder(data, { name: "rank.png" });
+      lvlUpChannel.safeSend({ content: lvlUpMessage, files: [attachment] });
     }
     await statsDb.save();
     cooldownCache.set(key, Date.now());
