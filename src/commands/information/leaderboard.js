@@ -43,6 +43,9 @@ module.exports = {
     const type = args[0].toLowerCase();
     let response;
 
+    // Optional: defer if message.safeReply doesn't handle long waits well
+    // but message commands usually don't have a strict 3s timeout like interactions.
+
     switch (type) {
       case "xp":
         response = await getXpLeaderboard(message, message.author, data.settings);
@@ -199,4 +202,4 @@ async function getRepLeaderboard(author) {
   const result = { embeds: [embed] };
   cache.set(cacheKey, result);
   return result;
-}
+      }
