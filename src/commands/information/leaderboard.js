@@ -67,7 +67,6 @@ module.exports = {
     try {
       await interaction.deferReply();
     } catch (e) {}
-    await interaction.deferReply();
     const type = interaction.options.getString("type");
     let response;
 
@@ -102,7 +101,7 @@ async function getXpLeaderboard({ guild, client }, author, settings) {
 
   const fs = require("fs");
   const leaderboard = new canvacord.LeaderboardBuilder()
-    .setBackground(fs.readFileSync(path.join(process.cwd(), "docs/.gitbook/assets/first_leaderboard_1766936477215.png")))
+    .setBackground(fs.readFileSync(path.join(process.cwd(), "attached_assets/first_leaderboard_1766936477215.png")))
     .setVariant("default")
     .setHeader({
       title: "XP Leaderboard",
@@ -126,12 +125,14 @@ async function getXpLeaderboard({ guild, client }, author, settings) {
 
   leaderboard.setPlayers(players);
 
-  // Set default fonts globally if needed.
+  // Use a system font to prevent "No fonts are loaded" error
   try {
     const fs = require("fs");
     const fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
     if (fs.existsSync(fontPath)) {
-      canvacord.Font.fromFileSync(fontPath, "DejaVu Sans");
+      // In canvacord 6.x, fonts are registered using Font.fromFileSync or new Font()
+      // which automatically adds them to the internal font manager.
+      await canvacord.Font.fromFile(fontPath, "DejaVu Sans");
     }
   } catch (e) {
     console.error("Failed to load font:", e);
@@ -205,4 +206,4 @@ async function getRepLeaderboard(author) {
   const result = { embeds: [embed] };
   cache.set(cacheKey, result);
   return result;
-      }
+}
