@@ -61,6 +61,7 @@ module.exports = {
   },
 
   async interactionRun(interaction, data) {
+    await interaction.deferReply();
     const type = interaction.options.getString("type");
     let response;
 
