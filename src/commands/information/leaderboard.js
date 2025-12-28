@@ -99,7 +99,7 @@ async function getXpLeaderboard({ guild, client }, author, settings) {
 
   const fs = require("fs");
   const leaderboard = new canvacord.LeaderboardBuilder()
-    .setBackground(fs.readFileSync(path.join(process.cwd(), "attached_assets/first_leaderboard_1766936477215.png")))
+    .setBackground(fs.readFileSync(path.join(process.cwd(), "docs/.gitbook/assets/first_leaderboard_1766936477215.png")))
     .setVariant("default")
     .setHeader({
       title: "XP Leaderboard",
