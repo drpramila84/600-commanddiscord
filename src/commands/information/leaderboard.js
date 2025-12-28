@@ -1,8 +1,11 @@
-const { EmbedBuilder, escapeInlineCode, ApplicationCommandOptionType } = require("discord.js");
-const { EMBED_COLORS } = require("@root/config");
+const { EmbedBuilder, escapeInlineCode, ApplicationCommandOptionType, AttachmentBuilder } = require("discord.js");
+const { EMBED_COLORS, IMAGE } = require("@root/config");
 const { getInvitesLb } = require("@schemas/Member");
 const { getXpLb } = require("@schemas/MemberStats");
 const { getReputationLb } = require("@schemas/User");
+const { getBuffer } = require("@helpers/HttpUtils");
+const canvacord = require("canvacord");
+const path = require("path");
 
 const leaderboardTypes = ["xp", "invite", "rep"];
 
@@ -14,7 +17,7 @@ module.exports = {
   name: "leaderboard",
   description: "display the XP, invite and rep leaderboard",
   category: "INFORMATION",
-  botPermissions: ["EmbedLinks"],
+  botPermissions: ["EmbedLinks", "AttachFiles"],
   command: {
     enabled: true,
     aliases: ["lb"],
@@ -81,51 +84,62 @@ module.exports = {
 // Create a Map object to store cache entries
 const cache = new Map();
 
-async function getXpLeaderboard({ guild }, author, settings) {
-  // Create a cache key using the guild ID and the type of leaderboard
+async function getXpLeaderboard({ guild, client }, author, settings) {
   const cacheKey = `${guild.id}:xp`;
-
-  // Check if there is a cached result for this request
-  if (cache.has(cacheKey)) {
-    // Return the cached result if it exists
-    return cache.get(cacheKey);
-  }
+  if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   if (!settings.stats.enabled) return "The leaderboard is disabled on this server";
 
   const lb = await getXpLb(guild.id, 10);
   if (lb.length === 0) return "There are no users in the leaderboard";
 
-  let collector = "";
-  for (let i = 0; i < lb.length; i++) {
-    try {
-      const user = await author.client.users.fetch(lb[i].member_id);
-      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} (Level: ${lb[i].level || 1} | XP: ${lb[i].xp.toLocaleString()})\n`;
-    } catch (ex) {
-      collector += `**#${(i + 1).toString()}** - DeletedUser#0000 (Level: ${lb[i].level || 1} | XP: ${lb[i].xp.toLocaleString()})\n`;
+  const leaderboard = new canvacord.LeaderboardBuilder()
+    .setBackground(path.join(process.cwd(), "attached_assets/first_leaderboard_1766936477215.png"))
+    .setVariant("default")
+    .setHeader({
+      title: "XP Leaderboard",
+      subtitle: guild.name,
+      image: guild.iconURL({ extension: "png" }),
+    });
+
+  const players = await Promise.all(
+    lb.map(async (user, index) => {
+      const discordUser = await client.users.fetch(user.member_id).catch(() => null);
+      return {
+        avatar: discordUser ? discordUser.displayAvatarURL({ extension: "png" }) : null,
+        username: discordUser ? discordUser.username : "Unknown",
+        displayName: discordUser ? discordUser.username : "Unknown",
+        level: user.level,
+        xp: user.xp,
+        rank: index + 1,
+      };
+    })
+  );
+
+  leaderboard.setPlayers(players);
+
+  // Set default fonts globally if needed.
+  try {
+    const fs = require("fs");
+    const fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+    if (fs.existsSync(fontPath)) {
+      canvacord.Font.fromFileSync(fontPath, "DejaVu Sans");
     }
+  } catch (e) {
+    console.error("Failed to load font:", e);
   }
 
-  const embed = new EmbedBuilder()
-    .setAuthor({ name: "XP Leaderboard" })
-    .setColor(EMBED_COLORS.BOT_EMBED)
-    .setDescription(collector)
-    .setFooter({ text: `Requested by ${author.tag}` });
+  const data = await leaderboard.build();
+  const attachment = new AttachmentBuilder(data, { name: "leaderboard.png" });
 
-  // Store the result in the cache for future requests
-  cache.set(cacheKey, { embeds: [embed] });
-  return { embeds: [embed] };
+  const result = { content: `**XP Leaderboard for ${guild.name}**`, files: [attachment] };
+  cache.set(cacheKey, result);
+  return result;
 }
 
-async function getInviteLeaderboard({ guild }, author, settings) {
-  // Create a cache key using the guild ID and the type of leaderboard
+async function getInviteLeaderboard({ guild, client }, author, settings) {
   const cacheKey = `${guild.id}:invite`;
-
-  // Check if there is a cached result for this request
-  if (cache.has(cacheKey)) {
-    // Return the cached result if it exists
-    return cache.get(cacheKey);
-  }
+  if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   if (!settings.invite.tracking) return "Invite tracking is disabled on this server";
 
@@ -138,7 +152,7 @@ async function getInviteLeaderboard({ guild }, author, settings) {
       const memberId = lb[i].member_id;
       if (memberId === "VANITY") collector += `**#${(i + 1).toString()}** - Vanity URL [${lb[i].invites}]\n`;
       else {
-        const user = await author.client.users.fetch(lb[i].member_id);
+        const user = await client.users.fetch(lb[i].member_id);
         collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} [${lb[i].invites}]\n`;
       }
     } catch (ex) {
@@ -152,20 +166,14 @@ async function getInviteLeaderboard({ guild }, author, settings) {
     .setDescription(collector)
     .setFooter({ text: `Requested by ${author.tag}` });
 
-  // Store the result in the cache for future requests
-  cache.set(cacheKey, { embeds: [embed] });
-  return { embeds: [embed] };
+  const result = { embeds: [embed] };
+  cache.set(cacheKey, result);
+  return result;
 }
 
 async function getRepLeaderboard(author) {
-  // Create a cache key using the user ID and the type of leaderboard
   const cacheKey = `${author.id}:rep`;
-
-  // Check if there is a cached result for this request
-  if (cache.has(cacheKey)) {
-    // Return the cached result if it exists
-    return cache.get(cacheKey);
-  }
+  if (cache.has(cacheKey)) return cache.get(cacheKey);
 
   const lb = await getReputationLb(10);
   if (lb.length === 0) return "There are no users in the leaderboard";
@@ -173,10 +181,10 @@ async function getRepLeaderboard(author) {
   let collector = "";
   for (let i = 0; i < lb.length; i++) {
     try {
-      const user = await author.client.users.fetch(lb[i]._id);
-      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} [${lb[i].reputation?.received || 0}]\n`;
+      const user = await author.client.users.fetch(lb[i].member_id);
+      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} [${lb[i].rep}]\n`;
     } catch (ex) {
-      collector += `**#${(i + 1).toString()}** - DeletedUser#0000 [${lb[i].reputation?.received || 0}]\n`;
+      collector += `**#${(i + 1).toString()}** - DeletedUser#0000 [${lb[i].rep}]\n`;
     }
   }
 
@@ -186,7 +194,7 @@ async function getRepLeaderboard(author) {
     .setDescription(collector)
     .setFooter({ text: `Requested by ${author.tag}` });
 
-  // Store the result in the cache for future requests
-  cache.set(cacheKey, { embeds: [embed] });
-  return { embeds: [embed] };
-    }
+  const result = { embeds: [embed] };
+  cache.set(cacheKey, result);
+  return result;
+}
