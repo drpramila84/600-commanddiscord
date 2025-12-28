@@ -138,7 +138,6 @@ module.exports = {
     try {
       await interaction.deferReply();
     } catch (e) {}
-    await interaction.deferReply();
     const sub = interaction.options.getSubcommand();
     let response;
 
@@ -220,10 +219,21 @@ async function generateRankCard(member, level, xp, isLevelUp = false) {
   const rank = pos !== -1 ? pos : 0;
 
   const bgPath = isLevelUp 
-    ? path.join(process.cwd(), "attached_assets/levelup_1766934035446.png")
-    : path.join(process.cwd(), "attached_assets/rankcard_1766934035390.png");
+    ? path.join(process.cwd(), "docs/.gitbook/assets/levelup_1766934035446.png")
+    : path.join(process.cwd(), "docs/.gitbook/assets/rankcard_1766934035390.png");
 
   const fs = require("fs");
+  
+  // Font loading fix for Render
+  try {
+    const fontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+    if (fs.existsSync(fontPath)) {
+      await canvacord.Font.fromFile(fontPath, "DejaVu Sans");
+    }
+  } catch (e) {
+    console.error("Failed to load font in xp command:", e);
+  }
+
   const rankCard = new canvacord.RankCardBuilder()
     .setAvatar(user.displayAvatarURL({ extension: "png", size: 512 }))
     .setCurrentXP(xp)
@@ -236,4 +246,4 @@ async function generateRankCard(member, level, xp, isLevelUp = false) {
 
   const data = await rankCard.build();
   return new AttachmentBuilder(data, { name: "rank.png" });
-  }
+}
