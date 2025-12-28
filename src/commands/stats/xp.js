@@ -17,7 +17,7 @@ module.exports = {
     subcommands: [
       {
         trigger: "message <new-message>",
-        description: "set custom level up message",
+        description: "set custom level up message, {member:name} show name {level} show level",
       },
       {
         trigger: "channel <#channel|off>",
