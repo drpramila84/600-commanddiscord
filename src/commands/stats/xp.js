@@ -135,6 +135,9 @@ module.exports = {
   },
 
   async interactionRun(interaction, data) {
+    try {
+      await interaction.deferReply();
+    } catch (e) {}
     await interaction.deferReply();
     const sub = interaction.options.getSubcommand();
     let response;
