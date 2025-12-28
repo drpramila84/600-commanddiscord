@@ -89,6 +89,15 @@ module.exports = {
     const subcommandArgs = args.slice(1);
     let response;
 
+    if (sub === "profile") {
+      const member = (await message.guild.resolveMember(subcommandArgs[0])) || message.member;
+      // Provide immediate feedback for message commands if needed
+      const loading = await message.channel.send("Generating rank card...");
+      response = await getProfile(member, data.settings);
+      loading.delete().catch(() => null);
+      return message.safeReply(response);
+    }
+
     // message
     if (sub === "message") {
       const msg = subcommandArgs.join(" ");
