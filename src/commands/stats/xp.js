@@ -126,6 +126,7 @@ module.exports = {
   },
 
   async interactionRun(interaction, data) {
+    await interaction.deferReply();
     const sub = interaction.options.getSubcommand();
     let response;
 
