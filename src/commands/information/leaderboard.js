@@ -94,7 +94,7 @@ async function getXpLeaderboard({ guild, client }, author, settings) {
   if (lb.length === 0) return "There are no users in the leaderboard";
 
   const leaderboard = new canvacord.LeaderboardBuilder()
-    .setBackground(path.join(process.cwd(), "attached_assets/first_leaderboard_1766936477215.png"))
+    .setBackground(fs.readFileSync(path.join(process.cwd(), "attached_assets/first_leaderboard_1766936477215.png")))
     .setVariant("default")
     .setHeader({
       title: "XP Leaderboard",
