@@ -15,6 +15,14 @@ module.exports = async (client, interaction) => {
 
   // Slash Commands
   if (interaction.isChatInputCommand()) {
+    // Early defer for commands known to take time (like image generation)
+    const { commandName } = interaction;
+    const subCommand = interaction.options.getSubcommand(false);
+    if (commandName === "leaderboard" || (commandName === "levelup" && subCommand === "profile")) {
+      try {
+        await interaction.deferReply();
+      } catch (e) {}
+    }
     await commandHandler.handleSlashCommand(interaction);
   }
 
