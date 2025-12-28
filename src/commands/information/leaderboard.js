@@ -100,9 +100,9 @@ async function getXpLeaderboard({ guild }, author, settings) {
   for (let i = 0; i < lb.length; i++) {
     try {
       const user = await author.client.users.fetch(lb[i].member_id);
-      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)}\n`;
+      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} (Level: ${lb[i].level || 1} | XP: ${lb[i].xp.toLocaleString()})\n`;
     } catch (ex) {
-      // Ignore
+      collector += `**#${(i + 1).toString()}** - DeletedUser#0000 (Level: ${lb[i].level || 1} | XP: ${lb[i].xp.toLocaleString()})\n`;
     }
   }
 
@@ -173,10 +173,10 @@ async function getRepLeaderboard(author) {
   let collector = "";
   for (let i = 0; i < lb.length; i++) {
     try {
-      const user = await author.client.users.fetch(lb[i].member_id);
-      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} [${lb[i].rep}]\n`;
+      const user = await author.client.users.fetch(lb[i]._id);
+      collector += `**#${(i + 1).toString()}** - ${escapeInlineCode(user.tag)} [${lb[i].reputation?.received || 0}]\n`;
     } catch (ex) {
-      collector += `**#${(i + 1).toString()}** - DeletedUser#0000 [${lb[i].rep}]\n`;
+      collector += `**#${(i + 1).toString()}** - DeletedUser#0000 [${lb[i].reputation?.received || 0}]\n`;
     }
   }
 
