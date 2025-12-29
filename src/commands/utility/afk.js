@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
-const db = require("../../schema/afk");
+const db = require("../../handlers/afk");
 
 module.exports = {
   name: "afk",
