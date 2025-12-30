@@ -1,4 +1,4 @@
- const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, ChannelType, AttachmentBuilder } = require('discord.js');
+const { ApplicationCommandType,
 const { QuickDB } = require("quick.db");
 const db = new QuickDB({ filePath: "./database/verify.sqlite" });
 const { createCanvas } = require('canvas');
@@ -125,5 +125,3 @@ module.exports = {
             await channel.send({ embeds: [verifyEmbed], components: [buttons] });
             await i.update({ content: `Your **verification system ${level}** has been set up!`, embeds: [], components: [] });
         });
-    }
-};
