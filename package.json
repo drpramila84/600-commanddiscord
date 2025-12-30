@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "nodemon .",
     "start": "node .",
+    "build": "npm rebuild better-sqlite3",
     "postinstall": "npm rebuild better-sqlite3",
     "format": "prettier --write src",
     "docker:package": "tar -cf discord-js-bot.tar dashboard logs src bot.js config.js dockerfile package.json package-lock.json",
