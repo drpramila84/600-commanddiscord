@@ -1,4 +1,4 @@
- const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, ChannelType, AttachmentBuilder, MessageFlags } = require('discord.js');
+const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, ChannelType, AttachmentBuilder, MessageFlags } = require('discord.js');
 const { QuickDB } = require("quick.db");
 const db = new QuickDB({ filePath: "./database/verify.sqlite" });
 const { createCanvas } = require('canvas');
