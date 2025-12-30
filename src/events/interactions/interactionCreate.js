@@ -1,9 +1,8 @@
 const { getSettings } = require("@schemas/Guild");
 const { commandHandler, contextHandler, statsHandler, suggestionHandler, ticketHandler } = require("@src/handlers");
 const { InteractionType, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder, InteractionResponseFlags } = require("discord.js");
-const { QuickDB } = require("quick.db");
-const db = new QuickDB({ filePath: "./database/verify.sqlite" });
-const { createCanvas } = require('canvas');
+const { QuickDB, JSONDriver } = require("quick.db");
+const db = new QuickDB({ driver: new JSONDriver() });
 
 /**
  * @param {import('@src/structures').BotClient} client
