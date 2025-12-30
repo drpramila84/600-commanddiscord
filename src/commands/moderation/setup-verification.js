@@ -1,4 +1,4 @@
- const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, ChannelType, AttachmentBuilder } = require('discord.js');
+ const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, ChannelType, AttachmentBuilder, MessageFlags } = require('discord.js');
 const { QuickDB } = require("quick.db");
 const db = new QuickDB({ filePath: "./database/verify.sqlite" });
 const { createCanvas } = require('canvas');
@@ -14,7 +14,7 @@ module.exports = {
         minArgsCount: 1,
     },
     slashCommand: {
-        enabled: true,
+        enabled: false,
         ephemeral: true,
         options: [
             {
@@ -102,7 +102,7 @@ module.exports = {
             .setAuthor({ name: `✅ Verification Process` })
             .setFooter({ text: `Powered by C4 Clan Community`, iconURL: interaction.guild.iconURL() });
 
-        const msg = await interaction.reply({ content: `Your **verification system** has been set up!`, embeds: [verify], components: [new ActionRowBuilder().addComponents(selectMenu)], ephemeral: true, fetchReply: true });
+        const msg = await interaction.reply({ content: `Your **verification system** has been set up!`, embeds: [verify], components: [new ActionRowBuilder().addComponents(selectMenu)], flags: [MessageFlags.Ephemeral], fetchReply: true });
 
         const filter = (i) => i.customId === 'verification_level' && i.user.id === interaction.user.id;
         const collector = msg.createMessageComponentCollector({ filter, time: 60000 });
