@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "nodemon .",
     "start": "node .",
+    "postinstall": "npm rebuild better-sqlite3",
     "format": "prettier --write src",
     "docker:package": "tar -cf discord-js-bot.tar dashboard logs src bot.js config.js dockerfile package.json package-lock.json",
     "docker:build": "docker build -t saitejamadha/discord-js-bot:5.5.0 ."
@@ -28,9 +29,10 @@
     "@lavaclient/spotify": "^3.1.0",
     "@vitalets/google-translate-api": "^9.2.0",
     "ascii-table": "0.0.9",
-    "better-sqlite3": "11.10.0",
+    "better-sqlite3": "^11.10.0",
     "btoa": "^1.2.1",
     "canvacord": "^6.0.4",
+    "canvas": "^3.2.0",
     "common-tags": "^1.8.2",
     "connect-mongo": "^5.1.0",
     "country-emoji-languages": "^1.0.0",
