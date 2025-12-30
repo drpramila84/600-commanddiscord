@@ -28,6 +28,7 @@
     "@lavaclient/spotify": "^3.1.0",
     "@vitalets/google-translate-api": "^9.2.0",
     "ascii-table": "0.0.9",
+    "better-sqlite3": "11.10.0",
     "btoa": "^1.2.1",
     "canvacord": "^6.0.4",
     "common-tags": "^1.8.2",
