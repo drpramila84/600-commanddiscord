@@ -1,7 +1,6 @@
 const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ButtonStyle, ButtonBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, ChannelType, AttachmentBuilder, MessageFlags } = require('discord.js');
-const { QuickDB } = require("quick.db");
-const db = new QuickDB({ filePath: "./database/verify.sqlite" });
-const { createCanvas } = require('canvas');
+const { QuickDB, JSONDriver } = require("quick.db");
+const db = new QuickDB({ driver: new JSONDriver() });
 
 module.exports = {
     name: 'setup-verification',
