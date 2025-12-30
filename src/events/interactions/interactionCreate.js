@@ -1,6 +1,6 @@
 const { getSettings } = require("@schemas/Guild");
 const { commandHandler, contextHandler, statsHandler, suggestionHandler, ticketHandler } = require("@src/handlers");
-const { InteractionType, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder } = require("discord.js");
+const { InteractionType, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, AttachmentBuilder, InteractionResponseFlags } = require("discord.js");
 const { QuickDB } = require("quick.db");
 const db = new QuickDB({ filePath: "./database/verify.sqlite" });
 const { createCanvas } = require('canvas');
@@ -116,7 +116,7 @@ module.exports = async (client, interaction) => {
         new ButtonBuilder().setCustomId("captcha_input_btn").setLabel("Enter Code").setStyle(ButtonStyle.Primary)
       );
 
-      return interaction.reply({ embeds: [embed], files: [attachment], components: [row], ephemeral: true });
+      return interaction.reply({ embeds: [embed], files: [attachment], components: [row], flags: [InteractionResponseFlags.Ephemeral] });
     }
 
     if (interaction.customId === "captcha_input_btn") {
