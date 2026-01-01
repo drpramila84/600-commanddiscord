@@ -1,7 +1,9 @@
 const { AttachmentBuilder, ApplicationCommandOptionType } = require("discord.js");
-const { EMBED_COLORS, IMAGE } = require("@root/config");
-const { getBuffer } = require("@helpers/HttpUtils");
+const { EMBED_COLORS } = require("@root/config");
 const { getMemberStats, getXpLb } = require("@schemas/MemberStats");
+const canvacord = require("canvacord");
+const path = require("path");
+const fs = require("fs");
 
 /**
  * @type {import("@structures/Command")}
@@ -57,27 +59,32 @@ async function getRank({ guild }, member, settings) {
     }
   });
 
-  const xpNeeded = memberStats.level * memberStats.level * 100;
+  const level = memberStats.level;
+  const xpNeeded = level * level * 100;
   const rank = pos !== -1 ? pos : 0;
 
-  const url = new URL(`${IMAGE.BASE_API}/utils/rank-card`);
-  url.searchParams.append("name", user.username);
-  if (user.discriminator != 0) url.searchParams.append("discriminator", user.discriminator);
-  url.searchParams.append("avatar", user.displayAvatarURL({ extension: "png", size: 128 }));
-  url.searchParams.append("currentxp", memberStats.xp);
-  url.searchParams.append("reqxp", xpNeeded);
-  url.searchParams.append("level", memberStats.level);
-  url.searchParams.append("barcolor", EMBED_COLORS.BOT_EMBED);
-  url.searchParams.append("status", member?.presence?.status?.toString() || "idle");
-  url.searchParams.append("rank", rank);
+  const bgPath = path.join(process.cwd(), "attached_assets/levelup_1766934035446.png");
+  
+  try {
+    const rankCard = new canvacord.RankCardBuilder()
+      .setAvatar(user.displayAvatarURL({ extension: "png", size: 512 }))
+      .setCurrentXP(memberStats.xp)
+      .setRequiredXP(xpNeeded)
+      .setStatus(member.presence?.status || "offline")
+      .setUsername(user.username)
+      .setRank(rank)
+      .setLevel(level)
+      .setProgressBar(EMBED_COLORS.BOT_EMBED, "COLOR");
 
-  const response = await getBuffer(url.href, {
-    headers: {
-      Authorization: `Bearer ${process.env.STRANGE_API_KEY}`,
-    },
-  });
-  if (!response.success) return "Failed to generate rank-card";
+    if (fs.existsSync(bgPath)) {
+      rankCard.setBackground(fs.readFileSync(bgPath));
+    }
 
-  const attachment = new AttachmentBuilder(response.buffer, { name: "rank.png" });
-  return { files: [attachment] };
+    const data = await rankCard.build();
+    const attachment = new AttachmentBuilder(data, { name: "rank.png" });
+    return { files: [attachment] };
+  } catch (ex) {
+    guild.client.logger.error("Rank Card Error", ex);
+    return "Failed to generate rank-card";
+  }
 }
