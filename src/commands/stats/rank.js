@@ -1,7 +1,6 @@
 const { AttachmentBuilder, ApplicationCommandOptionType } = require("discord.js");
-const { EMBED_COLORS } = require("@root/config");
 const { getMemberStats, getXpLb } = require("@schemas/MemberStats");
-const canvacord = require("canvacord");
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
 const fs = require("fs");
 
@@ -60,28 +59,116 @@ async function getRank({ guild }, member, settings) {
   });
 
   const level = memberStats.level;
-  const xpNeeded = level * level * 100;
+  const xp = memberStats.xp;
+  const needed = (level + 1) * (level + 1) * 100;
+  const currentLevelXp = level * level * 100;
+  const progress = xp - currentLevelXp;
+  const required = needed - currentLevelXp;
   const rank = pos !== -1 ? pos : 0;
 
-  const bgPath = path.join(process.cwd(), "attached_assets/levelup_1766934035446.png");
-  
   try {
-    const rankCard = new canvacord.RankCardBuilder()
-      .setAvatar(user.displayAvatarURL({ extension: "png", size: 512 }))
-      .setCurrentXP(memberStats.xp)
-      .setRequiredXP(xpNeeded)
-      .setStatus(member.presence?.status || "offline")
-      .setUsername(user.username)
-      .setRank(rank)
-      .setLevel(level)
-      .setProgressBar(EMBED_COLORS.BOT_EMBED, "COLOR");
+    const width = 900;
+    const height = 300;
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext("2d");
 
-    if (fs.existsSync(bgPath)) {
-      rankCard.setBackground(fs.readFileSync(bgPath));
-    }
+    // Background - Dark theme based on Python logic
+    ctx.fillStyle = "#030014";
+    ctx.fillRect(0, 0, width, height);
 
-    const data = await rankCard.build();
-    const attachment = new AttachmentBuilder(data, { name: "rank.png" });
+    // Diagonal Gradient
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#4a90e2");
+    gradient.addColorStop(1, "#50e3c2");
+    ctx.fillStyle = gradient;
+    ctx.globalAlpha = 0.3;
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalAlpha = 1.0;
+
+    // Rounded Rectangle Overlay
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.beginPath();
+    ctx.roundRect(15, 15, width - 30, height - 30, 20);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Avatar
+    const avatarUrl = user.displayAvatarURL({ extension: "png", size: 256 });
+    const avatar = await loadImage(avatarUrl);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(100, 150, 70, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(avatar, 30, 80, 140, 140);
+    ctx.restore();
+
+    // Border for Avatar
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(100, 150, 72, 0, Math.PI * 2, true);
+    ctx.stroke();
+
+    // Text Content
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 36px Arial";
+    ctx.fillText(user.username.toUpperCase(), 200, 80);
+
+    ctx.font = "bold 24px Arial";
+    ctx.fillStyle = "#ffd700";
+    ctx.fillText(`LEVEL ${level}`, 200, 130);
+
+    ctx.fillStyle = "#87cefa";
+    ctx.fillText(`RANK #${rank}`, 200, 170);
+
+    // Progress Bar
+    const barX = 200;
+    const barY = 210;
+    const barWidth = 500;
+    const barHeight = 30;
+
+    ctx.fillStyle = "#202225";
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barWidth, barHeight, 15);
+    ctx.fill();
+
+    const progressWidth = Math.min(Math.max((progress / required) * barWidth, 20), barWidth);
+    const barGradient = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
+    barGradient.addColorStop(0, "#64e9ff");
+    barGradient.addColorStop(1, "#ff69b4");
+    
+    ctx.fillStyle = barGradient;
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, progressWidth, barHeight, 15);
+    ctx.fill();
+
+    // XP Text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "18px Arial";
+    const xpText = `${progress.toLocaleString()} / ${required.toLocaleString()} XP`;
+    const textWidth = ctx.measureText(xpText).width;
+    ctx.fillText(xpText, barX + (barWidth - textWidth) / 2, barY + 22);
+
+    // Stats on right
+    ctx.font = "18px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("MESSAGES", 730, 100);
+    ctx.fillStyle = "#00ff7f";
+    ctx.font = "bold 22px Arial";
+    ctx.fillText(memberStats.messages.toLocaleString(), 730, 130);
+
+    ctx.font = "18px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("TOTAL XP", 730, 170);
+    ctx.fillStyle = "#ffa500";
+    ctx.font = "bold 22px Arial";
+    ctx.fillText(xp.toLocaleString(), 730, 200);
+
+    const buffer = canvas.toBuffer();
+    const attachment = new AttachmentBuilder(buffer, { name: "rank.png" });
     return { files: [attachment] };
   } catch (ex) {
     guild.client.logger.error("Rank Card Error", ex);
