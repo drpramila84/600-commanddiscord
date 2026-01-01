@@ -37,8 +37,8 @@ module.exports = {
 
   DASHBOARD: {
     enabled: true, // enable or disable dashboard
-    baseURL: "https://six00-commanddiscord-2.onrender.com", // base url
-    failureURL: "https://six00-commanddiscord-2.onrender.com", // failure redirect url
+    baseURL: "https://witherbot.onrender.com/", // base url
+    failureURL: "https://witherbot.onrender.com/", // failure redirect url
     port: "5000", // port to run the bot on
   },
 
@@ -59,9 +59,9 @@ module.exports = {
     // Refer to https://github.com/freyacodes/Lavalink to host your own lavalink server
     LAVALINK_NODES: [
       {
-        host: "lava-v3.ajieblogs.eu.org",
-        port: 443,
-        password: "https://dsc.gg/ajidevserver",
+        host: "http://pnode1.danbot.host:1351-",
+        port: 1351,
+        password: "cocaine",
         id: "Music",
         secure: true,
       },
