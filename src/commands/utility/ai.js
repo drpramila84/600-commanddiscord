@@ -42,15 +42,11 @@ module.exports = {
 };
 
 async function chatWithAI(query, username) {
-  if (!process.env.OPENAI_API_KEY) {
-    return "The AI feature is not configured. Please contact the bot owner.";
-  }
-
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
   try {
+    const openai = new OpenAI();
+
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -90,4 +86,4 @@ async function chatWithAI(query, username) {
 
     return "An error occurred while processing your request. Please try again later.";
   }
-      }
+        }
