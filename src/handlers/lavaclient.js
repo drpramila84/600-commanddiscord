@@ -8,6 +8,11 @@ require("@lavaclient/queue/register");
  * @param {import("@structures/BotClient")} client
  */
 module.exports = (client) => {
+  if (!client.config.MUSIC.LAVALINK_NODES?.[0]?.host) {
+    client.logger.warn("Music: No Lavalink nodes configured. Music system will not be initialized.");
+    return null;
+  }
+
   load({
     client: {
       id: process.env.SPOTIFY_CLIENT_ID,
