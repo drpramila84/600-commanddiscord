@@ -127,6 +127,9 @@ const Schema = new mongoose.Schema({
     channel_threshold: { type: Number, default: 3 },
     role_threshold: { type: Number, default: 3 },
     time_window: { type: Number, default: 10 },
+    anti_raid: { type: Boolean, default: false },
+    raid_threshold: { type: Number, default: 5 },
+    raid_time_window: { type: Number, default: 10 },
     punishment: { type: String, enum: ["BAN", "KICK", "REMOVE_ROLES"], default: "REMOVE_ROLES" },
   },
   boost: {
